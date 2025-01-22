@@ -79,7 +79,7 @@ exports.updatePlayerProgress = async (req, res) => {
       // If the player doesn't have a record yet, push a new subdoc
       achProgress = {
         achievementId,
-        progress: 0,
+        progress: parseInt(progressDelta, 10) || 0,
         isComplete: false,
         dateUnlocked: null
       };
@@ -89,7 +89,7 @@ exports.updatePlayerProgress = async (req, res) => {
     // Increment the progress
     const delta = parseInt(progressDelta, 10) || 0;
     achProgress.progress += delta;
-
+    console.log('Updated progress:', achProgress.progress); 
     // Check if we should mark it complete
     const achievement = await Achievement.findById(achievementId);
     if (achievement) {

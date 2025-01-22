@@ -5,7 +5,7 @@ const achievementSchema = new Schema({
   title: { type: String, required: true },
   description: { type: String, default: '' },
   type: { type: String, enum: ['progress', 'milestone'], required: true },
-  progressGoal: { type: Number, default: null }, // If type = "progress"
+  progressGoal: { type: Number, default: 1 }, // If type = "progress"
   isHidden: { type: Boolean, default: false },
   imageUrl: { type: String, default: '' },
   order: { type: Number, default: 0 }, // New field for ordering
