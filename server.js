@@ -15,12 +15,39 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log(`Incoming Request: ${req.method} ${req.url}`);
+
+  // Log query parameters
+  if (Object.keys(req.query).length > 0) {
+      console.log('Query Params:', req.query);
+  } else {
+      console.log('Query Params: None');
+  }
+
+  // Log route parameters
+  if (Object.keys(req.params).length > 0) {
+      console.log('Route Params:', req.params);
+  } else {
+      console.log('Route Params: None');
+  }
+
+  // Log body if available
+  if (req.body && Object.keys(req.body).length > 0) {
+      console.log('Request Body:', req.body);
+  } else {
+      console.log('Request Body: None');
+  }
+
+  next();
+});
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('Mongo connection error:', err));
+
 
 // Mount routes
 app.use('/api/lists', achievementListRoutes);  // => /api/lists/...
@@ -37,4 +64,4 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-module.exports = app; // Export for testingx
+module.exports = app; // Export for testing
