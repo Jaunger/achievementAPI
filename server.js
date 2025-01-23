@@ -24,7 +24,7 @@ app.use((req, res, next) => {
   } else {
       console.log('Query Params: None');
   }
-
+  //add
   // Log route parameters
   if (Object.keys(req.params).length > 0) {
       console.log('Route Params:', req.params);
