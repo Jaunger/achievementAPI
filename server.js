@@ -42,10 +42,8 @@ app.use((req, res, next) => {
   next();
 });
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log('Connected to MongoDB'))
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('Mongo connection error:', err));
 
 
@@ -53,7 +51,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use('/api/lists', achievementListRoutes);  // => /api/lists/...
 app.use('/api', achievementRoutes);            // => /api/achievements? ...
 app.use('/api/apikeys', apiKeyRoutes);         // => /api/apikeys
-app.use('/api/apps', playerRoutes);            // => /api/apps
+app.use('/api/players', playerRoutes);            // => /api/apps
 app.use('/api/apps', appRoutes);               // => /api/apps
 
 // Start the server if not in test mode
