@@ -9,11 +9,11 @@ import {
   VStack, 
   useToast 
 } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import Text from '../components/customText';
 import Box from '../components/customBox';
 function HomePage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const toast = useToast();
   const [apiKey, setApiKey] = useState();
 
@@ -29,11 +29,11 @@ function HomePage() {
     // }
     // For demonstration, store it or pass in location state
     localStorage.setItem('apiKey', apiKey); //TODO: idk go back to this later
-    navigate('/portal');
+    router.push('/portal');
   };
 
   const handleCreateList = () => {
-    navigate('/create-list');
+    router.push('/create-list');
   };
 
   return (
