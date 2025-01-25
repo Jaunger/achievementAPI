@@ -208,7 +208,7 @@ function CreateListPage() {
 
       // Redirect to response page with API key as a query parameter
       router.push({
-        pathname: '/create-list/response',
+        pathname: '/response',
         query: { apiKey: finalKey },
       });
     } catch (error) {

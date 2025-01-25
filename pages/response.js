@@ -1,106 +1,105 @@
 // pages/create-list/response.js
-import React from 'react';
-import { useRouter } from 'next/router';
+
+import React, { useEffect, useState } from 'react';
 import {
-  Box,
   Heading,
-  Text,
   VStack,
-  Button,
-  useToast,
-  IconButton,
-  Tooltip,
   HStack,
+  Button,
+  IconButton,
+  useClipboard,
+  useColorModeValue,
+  useToast,
 } from '@chakra-ui/react';
 import { CopyIcon } from '@chakra-ui/icons';
-import { copyToClipboard } from '../utils/helper';
-import NextLink from 'next/link';
+import { useRouter } from 'next/router';
+import Text from '../components/customText';
+import Box from '../components/customBox';
 
 function ResponsePage() {
   const router = useRouter();
-  const { apiKey } = router.query;
   const toast = useToast();
+  const { apiKey } = router.query; // Extract apiKey from query parameters
+  const [copied, setCopied] = useState(false);
+  const { hasCopied, onCopy } = useClipboard(apiKey || '');
 
-  const handleCopy = async () => {
-    try {
-      await copyToClipboard(apiKey);
+  useEffect(() => {
+    if (hasCopied) {
       toast({
         title: 'Copied!',
-        description: 'API Key copied to clipboard.',
+        description: 'API Key has been copied to your clipboard.',
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
-    } catch (error) {
-      toast({
-        title: 'Copy Failed',
-        description: 'Failed to copy API Key.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      setCopied(true);
+    } else {
+      setCopied(false);
     }
-  };
+  }, [hasCopied, toast]);
 
+  // Handle cases where apiKey might not be present
   if (!apiKey) {
     return (
-      <Box bg="gray.50" minH="100vh" p={8}>
-        <VStack spacing={4} align="center" mt={20}>
-          <Heading>No API Key Found</Heading>
-          <Text>Please create a list first.</Text>
-          <NextLink href="/create-list" passHref>
-            <Button as="a" colorScheme="blue">
-              Go to Create List
-            </Button>
-          </NextLink>
+      <Box
+        
+        minH="100vh"
+        p={8}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <VStack spacing={4} bg={useColorModeValue('white', 'gray.700')} p={8} borderRadius="md" shadow="md">
+          <Heading color="red.500">API Key Missing</Heading>
+          <Text>The API Key was not found in the URL. Please try creating the list again.</Text>
+          <Button colorScheme="blue" onClick={() => router.push('/create-list')}>
+            Go Back to Create List
+          </Button>
         </VStack>
       </Box>
     );
   }
 
   return (
-    <Box bg="gray.50" minH="100vh" p={8}>
-      <VStack
-        maxW="md"
-        mx="auto"
-        bg="white"
-        p={8}
-        shadow="md"
-        borderRadius="md"
-        spacing={6}
-      >
-        <Heading color="green.500">List Created Successfully!</Heading>
-        <Text>
-          Below is your API Key. Keep it safe and secure as it allows access to your
-          achievement list.
-        </Text>
-        <Box w="100%" p={4} border="1px solid" borderColor="gray.200" borderRadius="md" bg="gray.100">
-          <VStack align="start" spacing={2}>
-            <Text fontWeight="bold">API Key:</Text>
-            <HStack>
-              <Text>{apiKey}</Text>
-              <Tooltip label="Copy API Key" aria-label="Copy API Key Tooltip">
-                <IconButton
-                  icon={<CopyIcon />}
-                  onClick={handleCopy}
-                  size="sm"
-                  aria-label="Copy API Key"
-                  variant="ghost"
-                />
-              </Tooltip>
-            </HStack>
-          </VStack>
+    <Box
+      
+      minH="100vh"
+      p={8}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+    >
+      <VStack spacing={6} bg={useColorModeValue('white', 'gray.700')} p={8} borderRadius="md" shadow="md" w="full" maxW="md">
+        <Heading color="green.500">Success!</Heading>
+        <Text>Your Achievement List has been created successfully.</Text>
+        <Box w="100%">
+          <Text fontWeight="semibold" mb={2}>
+            Your API Key:fssdsfdssdfsdffdsdfsfdsdfsdsf
+          </Text>
+          <HStack>
+            <Box
+              bg={useColorModeValue('gray.100', 'gray.600')}
+              p={3}
+              borderRadius="md"
+              wordBreak="break-all"
+              flex="1"
+            >
+              {apiKey}
+            </Box>
+            <IconButton
+              icon={<CopyIcon />}
+              aria-label="Copy API Key"
+              onClick={onCopy}
+              colorScheme={copied ? 'green' : 'gray'}
+            />
+          </HStack>
         </Box>
-        <NextLink href="/portal" passHref>
-          <Button as="a" colorScheme="blue">
-            Go to Portal
-          </Button>
-        </NextLink>
-        <NextLink href="/" passHref>
-          <Button as="a" variant="outline">
-            Go to Home
-          </Button>
-        </NextLink>
+        <Text fontSize="sm" color="gray.500">
+          Please save this API Key securely. You will need it to access your Achievement List.
+        </Text>
+        <Button colorScheme="blue" onClick={() => router.push('/create-list')}>
+          Create Another List
+        </Button>
       </VStack>
     </Box>
   );

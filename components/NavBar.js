@@ -91,23 +91,7 @@ export default function NavBar() {
                 aria-label="Toggle Theme"
               />
             </Tooltip>
-            {/* Profile Dropdown (Optional) */}
-            <Menu>
-              <MenuButton
-                as={Button}
-                rounded={'full'}
-                variant={'link'}
-                cursor={'pointer'}
-                ml={4}
-              >
-                <Avatar size={'sm'} src={'https://bit.ly/broken-link'} />
-              </MenuButton>
-              <MenuList>
-                <MenuItem>Profile</MenuItem>
-                <MenuItem>Settings</MenuItem>
-                <MenuItem>Logout</MenuItem>
-              </MenuList>
-            </Menu>
+
           </Flex>
         </Flex>
 
@@ -130,16 +114,7 @@ export default function NavBar() {
                       {link.name}
                     </ChakraNextLink>
                   ))}
-                  {/* Additional Mobile Links (Optional) */}
-                  <Button
-                    variant="ghost"
-                    onClick={toggleColorMode}
-                    leftIcon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-                    w="100%"
-                    justifyContent="flex-start"
-                  >
-                    Toggle Theme
-                  </Button>
+
                 </VStack>
               </DrawerBody>
             </DrawerContent>

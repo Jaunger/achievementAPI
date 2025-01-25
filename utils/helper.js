@@ -11,7 +11,7 @@ export const copyToClipboard = async (text) => {
       textArea.focus();
       textArea.select();
       try {
-        document.execCommand("copy");
+        await navigator.clipboard.writeText(text);
       } catch (err) {
         throw new Error("Failed to copy text.");
       } finally {
