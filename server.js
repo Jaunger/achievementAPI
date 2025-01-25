@@ -69,6 +69,11 @@ nextApp.prepare().then(() => {
     return handle(req, res);
   });
 
+  // Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is healthy' });
+});
+
   // Start the server if not in test mode
   if (process.env.NODE_ENV !== 'test') {
     const PORT = process.env.PORT || 3000;

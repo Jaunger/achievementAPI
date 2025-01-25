@@ -13,7 +13,7 @@ import {
   HStack,
 } from '@chakra-ui/react';
 import { CopyIcon } from '@chakra-ui/icons';
-import { copyToClipboard } from '../../utils/helper';
+import { copyToClipboard } from '../utils/helper';
 import NextLink from 'next/link';
 
 function ResponsePage() {
