@@ -3,63 +3,79 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const next = require('next');
+const path = require('path');
 
 // Route modules
 const achievementListRoutes = require('./routes/achievementListRoutes');
 const achievementRoutes = require('./routes/achievementRoutes');
-const apiKeyRoutes = require('./routes/apiKeyRoutes'); // <== or wherever
+const apiKeyRoutes = require('./routes/apiKeyRoutes');
 const appRoutes = require('./routes/appRoutes');
 const playerRoutes = require('./routes/playerRoutes.js');
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const dev = process.env.NODE_ENV !== 'production';
+const nextApp = next({ dev, dir: __dirname });
+const handle = nextApp.getRequestHandler();
 
-app.use((req, res, next) => {
-  console.log(`Incoming Request: ${req.method} ${req.url}`);
+nextApp.prepare().then(() => {
+  const app = express();
 
-  // Log query parameters
-  if (Object.keys(req.query).length > 0) {
+  app.use(cors());
+  app.use(express.json());
+
+  // Middleware for logging
+  app.use((req, res, next) => {
+    console.log(`Incoming Request: ${req.method} ${req.url}`);
+
+    // Log query parameters
+    if (Object.keys(req.query).length > 0) {
       console.log('Query Params:', req.query);
-  } else {
+    } else {
       console.log('Query Params: None');
-  }
-  //add
-  // Log route parameters
-  if (Object.keys(req.params).length > 0) {
+    }
+
+    // Log route parameters
+    if (Object.keys(req.params).length > 0) {
       console.log('Route Params:', req.params);
-  } else {
+    } else {
       console.log('Route Params: None');
-  }
+    }
 
-  // Log body if available
-  if (req.body && Object.keys(req.body).length > 0) {
+    // Log body if available
+    if (req.body && Object.keys(req.body).length > 0) {
       console.log('Request Body:', req.body);
-  } else {
+    } else {
       console.log('Request Body: None');
+    }
+
+    next();
+  });
+
+  // Connect to MongoDB
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => console.error('Mongo connection error:', err));
+
+  // Mount API routes
+  app.use('/api/lists', achievementListRoutes); // => /api/lists/...
+  app.use('/api', achievementRoutes); // => /api/achievements? ...
+  app.use('/api/apikeys', apiKeyRoutes); // => /api/apikeys
+  app.use('/api/players', playerRoutes); // => /api/players
+  app.use('/api/apps', appRoutes); // => /api/apps
+
+  // Handle Next.js pages
+  app.all('*', (req, res) => {
+    return handle(req, res);
+  });
+
+  // Start the server if not in test mode
+  if (process.env.NODE_ENV !== 'test') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   }
 
-  next();
+  module.exports = app; // Export for testing
 });
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Mongo connection error:', err));
-
-
-// Mount routes
-app.use('/api/lists', achievementListRoutes);  // => /api/lists/...
-app.use('/api', achievementRoutes);            // => /api/achievements? ...
-app.use('/api/apikeys', apiKeyRoutes);         // => /api/apikeys
-app.use('/api/players', playerRoutes);            // => /api/apps
-app.use('/api/apps', appRoutes);               // => /api/apps
-
-// Start the server if not in test mode
-if (process.env.NODE_ENV !== 'test') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
-
-module.exports = app; // Export for testing
