@@ -1,6 +1,4 @@
-// controllers/AppController.js
-
-const AppModel = require('../models/App'); // or wherever your AppModel resides
+const AppModel = require('../models/App'); 
 
 /**
  * Create a new App

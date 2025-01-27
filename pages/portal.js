@@ -1,4 +1,13 @@
-// pages/portal.js
+/**
+ * AchievementPortal Component
+ * Manages fetching, viewing, editing, deleting, and reordering achievements with drag-and-drop functionality.
+ * Features include:
+ * - API key-based access control
+ * - Edit mode with draft state management
+ * - Drag-and-drop reordering
+ * - Achievement creation, updating, and deletion
+ * - Image upload and progress tracking
+ */
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -7,10 +16,7 @@ import {
   Input,
   Button,
   Textarea,
-  Checkbox,
   VStack,
-  Stack,
-  Select,
   useToast,
   Image,
   IconButton,
@@ -32,34 +38,17 @@ import {
   Text,
   Box,
 } from '@chakra-ui/react';
-
-import {
-  CopyIcon,
-  EditIcon,
-  CheckIcon,
-  CloseIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  DeleteIcon,
-  AddIcon,
-  WarningIcon,
-  SearchIcon,
-} from '@chakra-ui/icons';
-
-import {
-  copyToClipboard,
-  revertAchievements,
-} from '../utils/helper';
-import {
-  createAchievement,
-  updateAchievement,
-  deleteAchievement,
-  uploadAchievementImage,
-} from '../utils/apiUtil';
+import { CopyIcon, EditIcon, CheckIcon, CloseIcon, DeleteIcon, AddIcon, WarningIcon, SearchIcon } from '@chakra-ui/icons';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import SortableAchievementItem from '../components/sortableAchievementItem'; // Ensure this path is correct
+import { copyToClipboard } from '../utils/helper';
+import { updateAchievement, createAchievement, uploadAchievementImage, deleteAchievement } from '../utils/apiUtil';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * AchievementPortal Component
- * Manages fetching, viewing, editing, and deleting achievements.
+ * Manages fetching, viewing, editing, deleting, and reordering achievements with drag-and-drop.
  */
 function AchievementPortal() {
   const toast = useToast();
@@ -97,17 +86,6 @@ function AchievementPortal() {
   // =========================
   // Effect Hooks
   // =========================
-
-  // // Load API Key from localStorage on component mount
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     const storedApiKey = localStorage.getItem('apiKey');
-  //     if (storedApiKey) {
-  //       setApiKey(storedApiKey);
-  //       handleFetchAchievements(storedApiKey);
-  //     }
-  //   }
-  // }, []); TODO:come back to this
 
   // Warn user about unsaved changes when attempting to close the tab or navigate away
   useEffect(() => {
@@ -268,9 +246,21 @@ function AchievementPortal() {
   };
 
   const handleDraftAchievementChange = (index, field, value) => {
-    const updatedDraft = [...draftAchievements];
-    updatedDraft[index][field] = value;
-    setDraftAchievements(updatedDraft);
+    setDraftAchievements((prevDraft) => {
+      const newDraft = [...prevDraft];
+      newDraft[index][field] = value;
+
+      // If type changes, reset related fields
+      if (field === 'type') {
+        if (value === 'milestone') {
+          newDraft[index].progressGoal = ''; // Reset progressGoal
+        } else if (value === 'progress' && !newDraft[index].progressGoal) {
+          newDraft[index].progressGoal = 1; // Set default progressGoal
+        }
+      }
+
+      return newDraft;
+    });
     setHasUnsavedChanges(true);
   };
 
@@ -282,7 +272,7 @@ function AchievementPortal() {
     setDraftAchievements([
       ...draftAchievements,
       {
-        _id: '', // Will be assigned by backend upon saving
+        _id: uuidv4(), 
         title: '',
         description: '',
         type: 'progress',
@@ -330,49 +320,65 @@ function AchievementPortal() {
   };
 
   // =========================
-  // Reorder Functions
+  // Drag-and-Drop Handlers
   // =========================
-  const handleMoveUp = (index) => {
-    if (index === 0) return; // Already at the top
-    const updatedDraft = [...draftAchievements];
-    const temp = updatedDraft[index - 1];
-    updatedDraft[index - 1] = updatedDraft[index];
-    updatedDraft[index] = temp;
-    // Update the 'order' fields
-    updatedDraft[index - 1].order = index;
-    updatedDraft[index].order = index + 1;
-    setDraftAchievements(updatedDraft);
-    setHasUnsavedChanges(true);
+
+  // Define sensors for dnd-kit
+  const sensorsDnd = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Activate drag after moving 5px
+      },
+    })
+  );
+
+  const onDragEndHandler = (event) => {
+    handleDragEnd(event);
   };
 
-  const handleMoveDown = (index) => {
-    if (index === draftAchievements.length - 1) return; // Already at the bottom
-    const updatedDraft = [...draftAchievements];
-    const temp = updatedDraft[index + 1];
-    updatedDraft[index + 1] = updatedDraft[index];
-    updatedDraft[index] = temp;
-    // Update the 'order' fields
-    updatedDraft[index + 1].order = index + 1;
-    updatedDraft[index].order = index + 2;
-    setDraftAchievements(updatedDraft);
-    setHasUnsavedChanges(true);
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = draftAchievements.findIndex(
+        (ach) => ach._id === active.id || `new-${draftAchievements.indexOf(ach)}` === active.id
+      );
+      const newIndex = draftAchievements.findIndex(
+        (ach) => ach._id === over.id || `new-${draftAchievements.indexOf(ach)}` === over.id
+      );
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reorderedDraft = arrayMove(draftAchievements, oldIndex, newIndex);
+
+      // Update the 'order' fields based on new positions
+      const updatedDraft = reorderedDraft.map((ach, idx) => ({
+        ...ach,
+        order: idx + 1,
+      }));
+
+      setDraftAchievements(updatedDraft);
+      setHasUnsavedChanges(true);
+    }
   };
 
-  // =========================
-  // Image Upload Function
-  // =========================
-  const handleDraftImageChange = (index, file) => {
-    const updatedDraft = [...draftAchievements];
-    updatedDraft[index].newImageFile = file; // Store the file for later upload
-    updatedDraft[index].uploadProgress = 0; // Reset progress
-    setDraftAchievements(updatedDraft);
-    setHasUnsavedChanges(true);
-  };
 
   // =========================
   // Save & Cancel Functions
   // =========================
   const handleSave = async () => {
+    // **NEW VALIDATION: Prevent saving if there are zero achievements**
+    if (draftAchievements.length === 0) {
+      toast({
+        title: 'No Achievements to Save',
+        description: 'Please add at least one achievement before saving changes.',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     if (!apiKey || !listId) {
       toast({
         title: 'API Key Missing',
@@ -395,6 +401,8 @@ function AchievementPortal() {
       for (let i = 0; i < draftAchievements.length; i++) {
         const ach = draftAchievements[i];
         if (ach.newImageFile) {
+          // **IMPORTANT:** Ensure that changing the type does not reset player progression on the backend.
+          // This might require additional backend logic to handle type transitions appropriately.
           const imageUrl = await uploadAchievementImage(
             listId,
             ach._id,
@@ -417,7 +425,7 @@ function AchievementPortal() {
 
       // Handle deletions
       for (const ach of deletedAchievements) {
-        await deleteAchievement(ach._id);
+        await deleteAchievement(ach._id, apiKey);
       }
 
       // Update existing achievements
@@ -594,6 +602,20 @@ function AchievementPortal() {
     setShowSwitchApiKey(!showSwitchApiKey);
   };
 
+  // =========================
+  // Image Upload Function
+  // =========================
+  const handleDraftImageChange = (index, file) => {
+    const updatedDraft = [...draftAchievements];
+    updatedDraft[index].newImageFile = file; // Store the file for later upload
+    updatedDraft[index].uploadProgress = 0; // Reset progress
+    setDraftAchievements(updatedDraft);
+    setHasUnsavedChanges(true);
+  };
+
+  // =========================
+  // Render
+  // =========================
   return (
     <Box
       bg={useColorModeValue('gray.50', 'gray.800')}
@@ -693,6 +715,7 @@ function AchievementPortal() {
                   onClick={toggleSwitchApiKey}
                   aria-label="Switch API Key"
                   size="md"
+                  isDisabled={isEditing} // Disable while editing
                 >
                   Switch API Key
                 </Button>
@@ -841,7 +864,7 @@ function AchievementPortal() {
                 </VStack>
               )
             ) : (
-              // 4. Edit Mode with Draft Achievements
+              // 4. Edit Mode with Draft Achievements and Drag-and-Drop
               <VStack align="start" spacing={4}>
                 {/* Display Warning if No Achievements to Edit */}
                 {draftAchievements.length === 0 && (
@@ -857,222 +880,30 @@ function AchievementPortal() {
                     </HStack>
                   </Box>
                 )}
-                {/* Render Draft Achievements */}
-                {draftAchievements.map((ach, idx) => (
-                  <Box
-                    key={ach._id || `new-${idx}`}
-                    w="100%"
-                    p={{ base: 3, md: 4 }}
-                    border="1px solid"
-                    borderColor="gray.200"
-                    borderRadius="md"
+                {/* Render Draft Achievements with Drag-and-Drop */}
+                <DndContext
+                  sensors={sensorsDnd}
+                  collisionDetection={closestCenter}
+                  onDragEnd={onDragEndHandler}
+                >
+                  <SortableContext
+                    items={draftAchievements.map((ach, idx) => ach._id || `new-${idx}`)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    <HStack justifyContent="space-between" alignItems="center" flexDirection={{ base: 'column', md: 'row' }}>
-                      <Text
-                        fontSize={{ base: 'sm', md: 'md' }}
-                        color="gray.500"
-                      >
-                        {ach._id ? `Achievement #${idx + 1}` : `New Achievement #${idx + 1}`}
-                      </Text>
-                      {ach._id && (
-                        <Tooltip label="Copy Achievement ID" aria-label="Copy ID Tooltip">
-                          <IconButton
-                            icon={<CopyIcon />}
-                            onClick={() => handleCopyToClipboard(ach._id)}
-                            size="sm"
-                            variant="ghost"
-                            aria-label="Copy Achievement ID"
-                            mt={{ base: 2, md: 0 }}
-                          />
-                        </Tooltip>
-                      )}
-                    </HStack>
-                    <Stack spacing={3} mt={2}>
-                      {/* Title Input */}
-                      <Box>
-                        <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                          Title:
-                        </Text>
-                        <Input
-                          placeholder="Achievement Title"
-                          value={ach.title}
-                          onChange={(e) =>
-                            handleDraftAchievementChange(idx, 'title', e.target.value)
-                          }
-                          aria-label={`Title for Achievement #${idx + 1}`}
-                          size="md"
+                    <VStack spacing={4} align="stretch" w="100%">
+                      {draftAchievements.map((ach, idx) => (
+                        <SortableAchievementItem
+                          key={ach._id || `new-${idx}`}
+                          achievement={ach}
+                          index={idx}
+                          onChange={handleDraftAchievementChange}
+                          onDelete={handleDeleteAchievement}
+                          handleImageChange={handleDraftImageChange}
                         />
-                      </Box>
-
-                      {/* Description Input */}
-                      <Box>
-                        <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                          Description:
-                        </Text>
-                        <Textarea
-                          placeholder="Description of the achievement."
-                          value={ach.description}
-                          onChange={(e) =>
-                            handleDraftAchievementChange(idx, 'description', e.target.value)
-                          }
-                          aria-label={`Description for Achievement #${idx + 1}`}
-                          size="md"
-                        />
-                      </Box>
-
-                      {/* Type Select */}
-                      <Box>
-                        <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                          Type:
-                        </Text>
-                        <Select
-                          value={ach.type}
-                          onChange={(e) =>
-                            handleDraftAchievementChange(idx, 'type', e.target.value)
-                          }
-                          aria-label={`Type for Achievement #${idx + 1}`}
-                          size="md"
-                        >
-                          <option value="progress">Progress</option>
-                          <option value="milestone">Milestone</option>
-                        </Select>
-                      </Box>
-
-                      {/* Progress Goal Input (Conditional) */}
-                      {ach.type === 'progress' && (
-                        <Box>
-                          <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                            Progress Goal:
-                          </Text>
-                          <Input
-                            type="number"
-                            placeholder="10, 50, etc."
-                            value={ach.progressGoal != null ? ach.progressGoal : 1}
-                            onChange={(e) =>
-                              handleDraftAchievementChange(
-                                idx,
-                                'progressGoal',
-                                e.target.value
-                              )
-                            }
-                            aria-label={`Progress Goal for Achievement #${idx + 1}`}
-                            size="md"
-                          />
-                        </Box>
-                      )}
-
-                      {/* Hidden Checkbox */}
-                      <Box>
-                        <Checkbox
-                          isChecked={ach.isHidden}
-                          onChange={(e) =>
-                            handleDraftAchievementChange(idx, 'isHidden', e.target.checked)
-                          }
-                          aria-label={`Hidden status for Achievement #${idx + 1}`}
-                        >
-                          Hidden Achievement?
-                        </Checkbox>
-                      </Box>
-
-                      {/* Image Upload or Display */}
-                      <Box>
-                        <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                          Image (optional):
-                        </Text>
-                        {ach.imageUrl ? (
-                          <>
-                            <Image
-                              src={ach.imageUrl}
-                              alt={ach.title}
-                              boxSize={{ base: '80px', md: '100px' }}
-                              objectFit="cover"
-                              mt={2}
-                              borderRadius="md"
-                            />
-                            <Button
-                              size="sm"
-                              mt={2}
-                              onClick={() => {
-                                handleDraftAchievementChange(idx, 'imageUrl', '');
-                                toast({
-                                  title: 'Image Removed',
-                                  description: 'Achievement image has been removed.',
-                                  status: 'info',
-                                  duration: 3000,
-                                  isClosable: true,
-                                });
-                              }}
-                              colorScheme="red"
-                              leftIcon={<DeleteIcon />}
-                              aria-label={`Remove Image for Achievement #${idx + 1}`}
-                            >
-                              Remove Image
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files[0]) {
-                                  handleDraftImageChange(idx, e.target.files[0]);
-                                }
-                              }}
-                              aria-label={`Upload Image for Achievement #${idx + 1}`}
-                              size="md"
-                              mt={2}
-                            />
-                            {/* Display upload progress, if any */}
-                            {ach.uploadProgress > 0 && ach.uploadProgress < 100 && (
-                              <Progress
-                                value={ach.uploadProgress}
-                                size="sm"
-                                mt={2}
-                                colorScheme="green"
-                                aria-label={`Upload Progress for Achievement #${idx + 1}`}
-                              />
-                            )}
-                          </>
-                        )}
-                      </Box>
-
-                      {/* Reorder and Delete Buttons */}
-                      <HStack spacing={2}>
-                        <Tooltip label="Move Up" aria-label="Move Up Tooltip">
-                          <IconButton
-                            icon={<ArrowUpIcon />}
-                            onClick={() => handleMoveUp(idx)}
-                            size="sm"
-                            isDisabled={idx === 0}
-                            aria-label="Move Achievement Up"
-                            variant="ghost"
-                          />
-                        </Tooltip>
-                        <Tooltip label="Move Down" aria-label="Move Down Tooltip">
-                          <IconButton
-                            icon={<ArrowDownIcon />}
-                            onClick={() => handleMoveDown(idx)}
-                            size="sm"
-                            isDisabled={idx === draftAchievements.length - 1}
-                            aria-label="Move Achievement Down"
-                            variant="ghost"
-                          />
-                        </Tooltip>
-                        <Tooltip label="Delete Achievement" aria-label="Delete Achievement Tooltip">
-                          <IconButton
-                            icon={<DeleteIcon />}
-                            onClick={() => openDeleteModal(ach)}
-                            size="sm"
-                            colorScheme="red"
-                            aria-label="Delete Achievement"
-                            variant="ghost"
-                          />
-                        </Tooltip>
-                      </HStack>
-                    </Stack>
-                  </Box>
-                ))}
+                      ))}
+                    </VStack>
+                  </SortableContext>
+                </DndContext>
                 {/* Add New Achievement Button */}
                 <Button
                   leftIcon={<AddIcon />}
@@ -1084,6 +915,17 @@ function AchievementPortal() {
                 >
                   Add Achievement
                 </Button>
+                {/* **NEW: Display Warning if No Achievements in Draft** */}
+                {draftAchievements.length === 0 && (
+                  <Box p={2} bg="red.100" borderRadius="md" w="100%">
+                    <HStack>
+                      <WarningIcon color="red.500" />
+                      <Text color="red.700">
+                        You must have at least one achievement before saving changes.
+                      </Text>
+                    </HStack>
+                  </Box>
+                )}
                 {/* Save and Cancel Buttons */}
                 <HStack spacing={4} mt={4} flexDirection={{ base: 'column', md: 'row' }}>
                   <Button
@@ -1092,7 +934,7 @@ function AchievementPortal() {
                     leftIcon={<CheckIcon />}
                     isLoading={isSaving}
                     loadingText="Saving"
-                    isDisabled={isSaving}
+                    isDisabled={isSaving || draftAchievements.length === 0}
                     aria-label="Save Changes"
                     w={{ base: '100%', md: 'auto' }}
                   >
@@ -1145,6 +987,7 @@ function AchievementPortal() {
       </Modal>
     </Box>
   );
+
 }
 
 export default AchievementPortal;

@@ -1,34 +1,27 @@
-// achievement-frontend/src/pages/HomePage.js
+/**
+ * HomePage
+ * This is the landing page of the Achievement Dev Portal.
+ * It allows users to navigate to manage or create new achievement lists and provides guidance on API usage.
+ */
+
 import React, { useState } from 'react';
-import { 
-  //Box, 
-  Heading, 
-  //Text, 
-  Button, 
-  Input, 
-  VStack, 
-  useToast 
+import {
+  Heading,
+  Button,
+  VStack,
+  useToast,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import Text from '../components/customText';
 import Box from '../components/customBox';
+
 function HomePage() {
   const router = useRouter();
   const toast = useToast();
   const [apiKey, setApiKey] = useState();
 
   const handleEditList = () => {
-    // if (!apiKey) {
-    //   toast({
-    //     title: 'API Key is missing.',
-    //     status: 'error',
-    //     duration: 3000,
-    //     isClosable: true
-    //   });
-    //   return;
-    // }
-    // For demonstration, store it or pass in location state
-    localStorage.setItem('apiKey', apiKey); //TODO: idk go back to this later
+    localStorage.setItem('apiKey', apiKey); // Store the API key for later use
     router.push('/portal');
   };
 
@@ -47,23 +40,17 @@ function HomePage() {
         </Text>
 
         <VStack align="start" spacing={6}>
+          {/* Manage List Section */}
           <Box w="100%">
             <Heading as="h2" size="md" mb={2}>
               Manage Your Achievement List in the Portal
             </Heading>
-{/*             
-            <Input
-              placeholder="Enter your API key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              mb={3}
-            />
-             */}
             <Button colorScheme="brand" onClick={handleEditList}>
               Manage List
             </Button>
           </Box>
 
+          {/* Create List Section */}
           <Box w="100%">
             <Heading as="h2" size="md" mb={2}>
               Create a New Achievement List
@@ -73,6 +60,7 @@ function HomePage() {
             </Button>
           </Box>
 
+          {/* API Usage Section */}
           <Box w="100%">
             <Heading as="h2" size="md" mb={2}>
               API Usage
@@ -92,4 +80,4 @@ function HomePage() {
   );
 }
 
-export default HomePage; 
+export default HomePage;

@@ -1,4 +1,3 @@
-// controllers/PlayerController.js
 const Player = require('../models/Player');
 const Achievement = require('../models/Achievement');
 
@@ -80,7 +79,6 @@ exports.updatePlayerProgress = async (req, res) => {
       achProgress = {
         achievementId,
         progress: parseInt(progressDelta, 10) || 0,
-        isComplete: false,
         dateUnlocked: null
       };
       player.achievementsProgress.push(achProgress);
@@ -90,28 +88,6 @@ exports.updatePlayerProgress = async (req, res) => {
     const delta = parseInt(progressDelta, 10) || 0;
     achProgress.progress += delta;
     console.log('Updated progress:', achProgress.progress); 
-    // Check if we should mark it complete
-    const achievement = await Achievement.findById(achievementId);
-    if (achievement) {
-      if (
-        achievement.type === 'progress'
-        && achProgress.progress >= (achievement.progressGoal || 0)
-      ) {
-        achProgress.isComplete = true;
-        if (!achProgress.dateUnlocked) {
-          achProgress.dateUnlocked = new Date();
-        }
-      } else if (achievement.type === 'milestone') {
-        // For milestone achievements, you typically set isComplete = true once the milestone event is reached.
-        // If you're just passing progressDelta = 1 for "complete", do something like:
-        if (delta > 0) {
-          achProgress.isComplete = true;
-          if (!achProgress.dateUnlocked) {
-            achProgress.dateUnlocked = new Date();
-          }
-        }
-      }
-    }
 
     await player.save();
     return res.json(player);

@@ -1,10 +1,9 @@
-// routes/achievement.routes.js
 const express = require('express');
 const router = express.Router();
-
 const checkApiKey = require('../middleware/checkApiKey');
 const upload = require('../middleware/upload'); // We'll create this in Step #2
 const {
+
   createAchievement,
   getAchievementsForList,
   updateAchievement,

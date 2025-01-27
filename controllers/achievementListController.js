@@ -1,7 +1,7 @@
-// controllers/achievementList.controller.js
 const AchievementList = require('../models/AchievementList');
 const Player = require('../models/Player');
 const Achievement = require('../models/Achievement');
+
 
 exports.createList = async (req, res) => {
   try {

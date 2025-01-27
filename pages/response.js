@@ -1,4 +1,8 @@
-// pages/create-list/response.js
+/**
+ * ResponsePage
+ * Displays a confirmation page after successfully creating an achievement list.
+ * Shows the API key and allows the user to copy it or create another list.
+ */
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -20,7 +24,6 @@ function ResponsePage() {
   const router = useRouter();
   const toast = useToast();
   const { apiKey } = router.query; // Extract apiKey from query parameters
-  const [copied, setCopied] = useState(false);
   const { hasCopied, onCopy } = useClipboard(apiKey || '');
 
   useEffect(() => {
@@ -32,23 +35,13 @@ function ResponsePage() {
         duration: 3000,
         isClosable: true,
       });
-      setCopied(true);
-    } else {
-      setCopied(false);
     }
   }, [hasCopied, toast]);
 
   // Handle cases where apiKey might not be present
   if (!apiKey) {
     return (
-      <Box
-        
-        minH="100vh"
-        p={8}
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
+      <Box minH="100vh" p={8} display="flex" alignItems="center" justifyContent="center">
         <VStack spacing={4} bg={useColorModeValue('white', 'gray.700')} p={8} borderRadius="md" shadow="md">
           <Heading color="red.500">API Key Missing</Heading>
           <Text>The API Key was not found in the URL. Please try creating the list again.</Text>
@@ -61,36 +54,23 @@ function ResponsePage() {
   }
 
   return (
-    <Box
-      
-      minH="100vh"
-      p={8}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-    >
+    <Box minH="100vh" p={8} display="flex" alignItems="center" justifyContent="center">
       <VStack spacing={6} bg={useColorModeValue('white', 'gray.700')} p={8} borderRadius="md" shadow="md" w="full" maxW="md">
         <Heading color="green.500">Success!</Heading>
         <Text>Your Achievement List has been created successfully.</Text>
         <Box w="100%">
           <Text fontWeight="semibold" mb={2}>
-            Your API Key:fssdsfdssdfsdffdsdfsfdsdfsdsf
+            Your API Key:
           </Text>
           <HStack>
-            <Box
-              bg={useColorModeValue('gray.100', 'gray.600')}
-              p={3}
-              borderRadius="md"
-              wordBreak="break-all"
-              flex="1"
-            >
+            <Box bg={useColorModeValue('gray.100', 'gray.600')} p={3} borderRadius="md" wordBreak="break-all" flex="1">
               {apiKey}
             </Box>
             <IconButton
               icon={<CopyIcon />}
               aria-label="Copy API Key"
               onClick={onCopy}
-              colorScheme={copied ? 'green' : 'gray'}
+              colorScheme={hasCopied ? 'green' : 'gray'}
             />
           </HStack>
         </Box>

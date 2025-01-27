@@ -1,9 +1,11 @@
-
 const s3 = require('../uploads/s3Client'); 
 const { PutObjectCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
+const mongoose = require('mongoose');
 const Achievement = require('../models/Achievement');
 const AchievementList = require('../models/AchievementList');
+const Player = require('../models/Player');
+
 
 // Create a new Achievement and add it to a list (max 10)xs
 exports.createAchievement = async (req, res) => {
@@ -55,6 +57,9 @@ exports.updateAchievement = async (req, res) => {
     const { listId, achievementId } = req.params;
     const { order, ...otherUpdates } = req.body; // Destructure order from updates
 
+    // Convert achievementId from string to ObjectId
+    const achievementObjectId = new mongoose.Types.ObjectId(achievementId);
+
     // Verify the list is correct for the API key
     if (req.apiKey.listId.toString() !== listId) {
       return res.status(403).json({ error: 'API key does not match this list' });
@@ -71,16 +76,18 @@ exports.updateAchievement = async (req, res) => {
 
     let updatedAch;
 
+    // Fetch the current achievement before any updates
+    const currentAchievement = await Achievement.findById(achievementObjectId);
+    if (!currentAchievement) {
+      return res.status(404).json({ error: 'Achievement not found' });
+    }
+
+    const originalType = currentAchievement.type;
+
     if (order !== undefined) {
       // Validate order
       if (!Number.isInteger(order) || order < 1) {
         return res.status(400).json({ error: 'Order must be a positive integer.' });
-      }
-
-      // Fetch current achievement
-      const currentAchievement = await Achievement.findById(achievementId);
-      if (!currentAchievement) {
-        return res.status(404).json({ error: 'Achievement not found' });
       }
 
       const currentOrder = currentAchievement.order;
@@ -111,11 +118,31 @@ exports.updateAchievement = async (req, res) => {
 
     // Update other fields
     if (Object.keys(otherUpdates).length > 0) {
-      updatedAch = await Achievement.findByIdAndUpdate(achievementId, otherUpdates, { new: true });
+      updatedAch = await Achievement.findByIdAndUpdate(achievementObjectId, otherUpdates, { new: true });
     }
 
     if (!updatedAch) {
       return res.status(404).json({ error: 'Achievement not found or no updates applied' });
+    }
+
+    // Check if 'type' has changed
+    const newType = updatedAch.type;
+    if (newType !== originalType) {
+      // Reset 'progress' and 'dateUnlocked' for all players associated with this achievement
+      await Player.updateMany(
+        { 'achievementsProgress.achievementId': achievementObjectId },
+        {
+          $set: {
+            'achievementsProgress.$[elem].progress': 0,
+            'achievementsProgress.$[elem].dateUnlocked': null
+          }
+        },
+        {
+          arrayFilters: [{ 'elem.achievementId': achievementObjectId }]
+        }
+      );
+
+      console.log(`Achievement type changed for ID: ${achievementId}. Reset progress for all players.`);
     }
 
     return res.json(updatedAch);

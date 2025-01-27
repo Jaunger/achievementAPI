@@ -91,7 +91,6 @@ export default function NavBar() {
                 aria-label="Toggle Theme"
               />
             </Tooltip>
-
           </Flex>
         </Flex>
 
@@ -110,11 +109,14 @@ export default function NavBar() {
               <DrawerBody>
                 <VStack as={'nav'} spacing={4}>
                   {Links.map((link) => (
-                    <ChakraNextLink key={link.name} href={link.path}>
+                    <ChakraNextLink
+                      key={link.name}
+                      href={link.path}
+                      onClick={onClose} 
+                    >
                       {link.name}
                     </ChakraNextLink>
                   ))}
-
                 </VStack>
               </DrawerBody>
             </DrawerContent>

@@ -1,10 +1,7 @@
-// routes/AppRoutes.js
-
 const express = require('express');
 const router = express.Router();
-
-// Import the AppController
 const AppController = require('../controllers/appController');
+
 
 // POST /api/apps
 router.post('/', AppController.createApp);

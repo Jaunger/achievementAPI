@@ -1,8 +1,7 @@
-// routes/apiKey.routes.js
 const express = require('express');
 const router = express.Router();
 const {
-  // remove or rename getAchievementListId
+
   createApiKey,
   getApiKeysByList,
   deleteApiKey,

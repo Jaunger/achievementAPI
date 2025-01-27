@@ -6,7 +6,6 @@ const { Schema } = mongoose;
 const achievementProgressSchema = new Schema({
   achievementId: { type: Schema.Types.ObjectId, ref: 'Achievement', required: true },
   progress: { type: Number, default: 0 },
-  isComplete: { type: Boolean, default: false },
   dateUnlocked: { type: Date, default: null }
 }, { _id: false });
 

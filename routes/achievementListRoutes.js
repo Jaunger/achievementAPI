@@ -1,9 +1,8 @@
-// routes/achievementList.routes.js
 const express = require('express');
 const router = express.Router();
 const checkApiKey = require('../middleware/checkApiKey');
-
 const {
+
   createList,
   getListById,
   updateList,

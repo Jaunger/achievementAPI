@@ -1,21 +1,19 @@
-// server.js
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const next = require('next');
 const path = require('path');
-
-// Route modules
 const achievementListRoutes = require('./routes/achievementListRoutes');
 const achievementRoutes = require('./routes/achievementRoutes');
 const apiKeyRoutes = require('./routes/apiKeyRoutes');
 const appRoutes = require('./routes/appRoutes');
 const playerRoutes = require('./routes/playerRoutes.js');
-
 const dev = process.env.NODE_ENV !== 'production';
 const nextApp = next({ dev, dir: __dirname });
 const handle = nextApp.getRequestHandler();
+
+require('dotenv').config();
+
 
 nextApp.prepare().then(() => {
   const app = express();
