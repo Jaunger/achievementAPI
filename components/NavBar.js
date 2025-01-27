@@ -1,5 +1,3 @@
-// components/NavBar.js
-
 import React from 'react';
 import { useColorMode } from '@chakra-ui/react';
 import {
@@ -38,6 +36,7 @@ const Links = [
   { name: 'Home', path: '/' },
   { name: 'Create List', path: '/create-list' },
   { name: 'Portal', path: '/portal' },
+  { name: 'Documentation', path: '/documentation' }, // Added the "How to Use" link
 ];
 
 export default function NavBar() {

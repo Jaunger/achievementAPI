@@ -10,10 +10,11 @@ import {
   Button, 
   VStack, 
   useToast,
+  Text,
+  Divider,
 } from '@chakra-ui/react';
-import { useRouter } from 'next/router';
-import Text from '../components/customText';
 import Box from '../components/customBox';
+import { useRouter } from 'next/router';
 
 function HomePage() {
   const router = useRouter();
@@ -52,12 +53,12 @@ function HomePage() {
             </Heading>
             <Text mb={3}>
               Use the portal and SDK to access and manage your existing achievement lists. You can:
-              <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
-                <li>Edit achievements, including their titles, descriptions, and images.</li>
-                <li>Update progress goals and visibility for specific achievements.</li>
-                <li>Delete outdated or unnecessary achievements.</li>
-              </ul>
             </Text>
+            <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+              <li>Edit achievements, including their titles, descriptions, and images.</li>
+              <li>Update progress goals and visibility for specific achievements.</li>
+              <li>Delete outdated or unnecessary achievements.</li>
+            </ul>
             <Button colorScheme="blue" onClick={handleEditList}>
               Manage List
             </Button>
@@ -70,12 +71,12 @@ function HomePage() {
             </Heading>
             <Text mb={3}>
               Design a new achievement list for your game or app with ease. Our tools allow you to:
-              <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
-                <li>Create customizable achievements with titles, descriptions, and progress goals.</li>
-                <li>Include hidden achievements to surprise and delight your players.</li>
-                <li>Upload custom images to visually enhance your achievement system.</li>
-              </ul>
             </Text>
+            <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+              <li>Create customizable achievements with titles, descriptions, and progress goals.</li>
+              <li>Include hidden achievements to surprise and delight your players.</li>
+              <li>Upload custom images to visually enhance your achievement system.</li>
+            </ul>
             <Button colorScheme="teal" onClick={handleCreateList}>
               Go to Create Page
             </Button>
@@ -101,9 +102,17 @@ function HomePage() {
               Check out the developer documentation for detailed guides and examples for both the API and SDK.
             </Text>
           </Box>
-
-
+          
         </VStack>
+
+        <Divider my={8} />
+
+        {/* Footer Section */}
+        <Box textAlign="center" mt={8}>
+          <Text fontSize="sm" color="gray.500">
+            &copy; 2025 AchievementsSDK | Developed by Daniel Raby
+          </Text>
+        </Box>
       </Box>
     </Box>
   );
