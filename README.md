@@ -367,6 +367,15 @@ The Achievement Dev Portal frontend provides a user-friendly interface to manage
 
 Each page is designed for easy navigation, making achievement management seamless for your app!
 
+---
+
+## ScreenShots
+
+
+## Video
+
+---
+
 ## 🛡️ Security
 
 AchievementsAPI uses **API keys** to restrict access to achievement lists and player data. Always store your API keys securely and **avoid exposing them in client-side code**. 
