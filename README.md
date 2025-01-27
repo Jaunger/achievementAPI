@@ -68,7 +68,7 @@ npm install
 
   ```bash
 
-_MONGO__URI=<Your MongoDB URI>
+_MONGO_URI=<Your MongoDB URI>
 
 _AWS__ACCESS_KEY_ID=<Your AWS  Access  Key  ID>
 
