@@ -36,8 +36,8 @@ import {
   useColorModeValue,
   Spinner,
   Text,
-  Box,
 } from '@chakra-ui/react';
+import Box from '../components/customBox';
 import { CopyIcon, EditIcon, CheckIcon, CloseIcon, DeleteIcon, AddIcon, WarningIcon, SearchIcon } from '@chakra-ui/icons';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -45,7 +45,6 @@ import SortableAchievementItem from '../components/sortableAchievementItem'; // 
 import { copyToClipboard } from '../utils/helper';
 import { updateAchievement, createAchievement, uploadAchievementImage, deleteAchievement } from '../utils/apiUtil';
 import { v4 as uuidv4 } from 'uuid';
-
 /**
  * AchievementPortal Component
  * Manages fetching, viewing, editing, deleting, and reordering achievements with drag-and-drop.

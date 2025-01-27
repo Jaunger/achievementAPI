@@ -12,6 +12,7 @@ import {
   useToast,
   Text,
   Divider,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import Box from '../components/customBox';
 import { useRouter } from 'next/router';
@@ -34,7 +35,9 @@ function HomePage() {
   };
 
   return (
-    <Box p={8} minH="100vh">
+    <Box bg={useColorModeValue('gray.50', 'gray.800')}
+    minH="100vh"
+    p={{ base: 4, md: 8 }}>
       <Box maxW="3xl" mx="auto" p={8} shadow="md" borderRadius="md">
         <Heading color="blue.500" mb={4}>
           Achievement Dev Portal

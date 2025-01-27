@@ -14,7 +14,6 @@ import {
   Textarea,
   VStack,
   HStack,
-  Box,
   useToast,
   useColorModeValue,
 } from '@chakra-ui/react';
@@ -25,7 +24,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-ki
 import SortableAchievementItem from '../components/sortableAchievementItem';
 import { createAchievement, uploadAchievementImage } from '../utils/apiUtil';
 import { v4 as uuidv4 } from 'uuid';
-
+import Box from '../components/customBox';
 function CreateListPage() {
   const toast = useToast();
   const router = useRouter();

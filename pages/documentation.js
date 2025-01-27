@@ -53,9 +53,9 @@ const HowToUse = () => {
 
   return (
     <Box
-      minH="100vh"
-      py={10}
-      px={4}
+ bg={useColorModeValue('gray.50', 'gray.800')}
+    minH="100vh"
+    p={{ base: 4, md: 8 }}
     >
       {/* Central container with white background */}
       <Box
