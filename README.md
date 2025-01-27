@@ -335,28 +335,36 @@ Retrieves metadata about the provided API key.
 
 The Achievement Dev Portal frontend provides a user-friendly interface to manage and create achievement lists, integrated with the **AchievementsAPI**.
 
-### 1. **HomePage** 🏠
+
+### 1. **HomePage** 🏠 - `/`
 - **Purpose**: The landing page for the portal, providing an overview of API/SDK capabilities and links to manage or create achievement lists.
 - **Accessible at**: [HomePage](https://achievementapi.onrender.com)
 
 ---
 
-### 2. **Create List Page** 📝
+### 2. **Create List Page** 📝 - `/create-list`
 - **Purpose**: Allows users to design new achievement lists and add customizable achievements.
 - **Accessible from**: HomePage → "Go to Create Page"
 
 ---
 
-### 3. **Portal Page** 🔧
+### 3. **Portal Page** 🔧 - `/portal`
 - **Purpose**: Manage existing achievement lists, edit achievements, and update progress goals.
 - **Accessible from**: HomePage → "Manage List" button
 
 ---
 
-### 4. **Response Page** ✅
+### 4. **Response Page** ✅ - `/response`
 - **Purpose**: Shows confirmation after creating a new achievement list, along with the API key.
 - **Accessible from**: After creating an achievement list in Create List Page
+  
+---
 
+### 5. **Documentation  Page** 📖 - `/documentation`
+
+-  **Purpose**: Provides detailed instructions on how to interact with the AchievementsAPI, including API endpoints, error handling, and integration examples.
+
+-  **Accessible from**: HomePage → "Documentation" link
 ---
 
 ### Navigation Flow
