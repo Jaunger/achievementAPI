@@ -410,14 +410,15 @@ function CreateListPage() {
                 leftIcon={<AddIcon />}
                 colorScheme="green"
                 variant="outline"
+                alignSelf="flex-start"
                 onClick={handleAddAchievement}
                 isDisabled={achievements.length >= MAX_ACHIEVEMENTS}
+                size="md"
                 aria-label="Add Another Achievement"
               >
                 Add Achievement
               </Button>
             </HStack>
-
             {/* Drag-and-Drop Context */}
             <DndContext
               sensors={sensors}
