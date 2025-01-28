@@ -1,3 +1,5 @@
+// components/SortableAchievementItem.js
+
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -25,7 +27,7 @@ const SortableAchievementItem = ({
   index,
   onChange,
   onDelete,
-  handleImageChange,
+  handleImageChange, // Now specifically handleDraftImageChange
 }) => {
   // Utilize useSortable hook
   const {
@@ -143,7 +145,7 @@ const SortableAchievementItem = ({
               accept="image/*"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
-                  handleImageChange(index, e.target.files[0]);
+                  handleImageChange(index, e.target.files[0]); // Now calls handleDraftImageChange
                 }
               }}
               aria-label={`Achievement ${index + 1} Image Upload`}
@@ -212,7 +214,7 @@ SortableAchievementItem.propTypes = {
   index: PropTypes.number.isRequired,
   onChange: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
-  handleImageChange: PropTypes.func.isRequired,
+  handleImageChange: PropTypes.func.isRequired, // Now handleDraftImageChange
 };
 
 export default SortableAchievementItem;

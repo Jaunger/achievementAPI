@@ -120,7 +120,7 @@ function CreateListPage() {
   const handleDeleteAchievement = (achievementId) => {
     console.log(`Attempting to delete achievement with ID: ${achievementId}`); // Debug log
     setAchievements((prevAchs) => {
-      const newAchs = prevAchs.filter((ach) => ach._id !== achievementId._id);
+      const newAchs = prevAchs.filter((ach) => ach._id !== achievementId);
       console.log(`New Achievements List:`, newAchs); // Debug log
       return newAchs;
     });
