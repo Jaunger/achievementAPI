@@ -1,13 +1,4 @@
-/**
- * AchievementPortal Component
- * Manages fetching, viewing, editing, deleting, and reordering achievements with drag-and-drop functionality.
- * Features include:
- * - API key-based access control
- * - Edit mode with draft state management
- * - Drag-and-drop reordering
- * - Achievement creation, updating, and deletion
- * - Image upload and progress tracking
- */
+// AchievementPortal.js
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -22,7 +13,6 @@ import {
   IconButton,
   HStack,
   Spacer,
-  Progress,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -37,18 +27,22 @@ import {
   Spinner,
   Text,
 } from '@chakra-ui/react';
-import Box from '../components/customBox';
 import { CopyIcon, EditIcon, CheckIcon, CloseIcon, DeleteIcon, AddIcon, WarningIcon, SearchIcon } from '@chakra-ui/icons';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import SortableAchievementItem from '../components/sortableAchievementItem'; // Ensure this path is correct
+import SortableAchievementItem from '../components/SortableAchievementItem';
 import { copyToClipboard } from '../utils/helper';
-import { updateAchievement, createAchievement, uploadAchievementImage, deleteAchievement } from '../utils/apiUtil';
+import {
+  updateAchievement,
+  createAchievement,
+  uploadAchievementImage,
+  deleteAchievement,
+} from '../utils/apiUtil';
 import { v4 as uuidv4 } from 'uuid';
-/**
- * AchievementPortal Component
- * Manages fetching, viewing, editing, deleting, and reordering achievements with drag-and-drop.
- */
+import Box from '../components/customBox';
+
+const MAX_ACHIEVEMENTS = 10; // Define the maximum number of achievements allowed
+
 function AchievementPortal() {
   const toast = useToast();
 
@@ -158,12 +152,12 @@ function AchievementPortal() {
         throw new Error('Invalid response format for achievements.');
       }
 
-      // Initialize uploadProgress for each achievement
+      // Initialize uploadProgress and isNew for each achievement
       const initializedAchievements = fetchedAchievements.map((ach) => ({
         ...ach,
         uploadProgress: 0,
+        isNew: false, // Mark existing achievements
       }));
-      console.log('Fetched Achievements:', initializedAchievements);
 
       setAchievements(initializedAchievements);
       setOriginalAchievements(initializedAchievements);
@@ -264,6 +258,20 @@ function AchievementPortal() {
   };
 
   const handleAddDraftAchievement = () => {
+    // Calculate the total number of achievements (existing + drafts)
+    const totalAchievements = draftAchievements.length;
+    
+    if (totalAchievements >= MAX_ACHIEVEMENTS) {
+      toast({
+        title: 'Achievement Limit Reached',
+        description: `You can only have up to ${MAX_ACHIEVEMENTS} achievements.`,
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     const newOrder =
       draftAchievements.length > 0
         ? Math.max(...draftAchievements.map((a) => a.order)) + 1
@@ -271,7 +279,7 @@ function AchievementPortal() {
     setDraftAchievements([
       ...draftAchievements,
       {
-        _id: uuidv4(), 
+        _id: uuidv4(), // Assign a unique temporary ID
         title: '',
         description: '',
         type: 'progress',
@@ -280,6 +288,7 @@ function AchievementPortal() {
         imageUrl: '',
         order: newOrder, // Assign the next order value
         uploadProgress: 0, // Initialize uploadProgress
+        isNew: true, // Mark as new achievement
         newImageFile: null, // For handling new image uploads
       },
     ]);
@@ -296,18 +305,27 @@ function AchievementPortal() {
 
   const confirmDeleteAchievement = () => {
     if (achievementToDelete) {
-      handleDeleteAchievement(achievementToDelete._id);
+      handleDeleteAchievement(achievementToDelete);
       setAchievementToDelete(null);
       onClose();
     }
   };
 
-  const handleDeleteAchievement = (achievementId) => {
-    const achievement = draftAchievements.find((ach) => ach._id === achievementId);
-    if (achievement) {
+  const handleDeleteAchievement = (achievement) => {
+    if (achievement.isNew) {
+      // If the achievement is new (draft), simply remove it from drafts
+      setDraftAchievements((prev) => prev.filter((ach) => ach._id !== achievement._id));
+      toast({
+        title: 'Draft Achievement Removed',
+        description: 'The new achievement has been removed.',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    } else {
+      // If the achievement exists in the backend, mark it for deletion
       setDeletedAchievements((prev) => [...prev, achievement]);
-      setDraftAchievements((prev) => prev.filter((ach) => ach._id !== achievementId));
-      setHasUnsavedChanges(true);
+      setDraftAchievements((prev) => prev.filter((ach) => ach._id !== achievement._id));
       toast({
         title: 'Achievement Marked for Deletion',
         description: 'This achievement will be deleted upon saving changes.',
@@ -316,6 +334,7 @@ function AchievementPortal() {
         isClosable: true,
       });
     }
+    setHasUnsavedChanges(true);
   };
 
   // =========================
@@ -361,7 +380,6 @@ function AchievementPortal() {
     }
   };
 
-
   // =========================
   // Save & Cancel Functions
   // =========================
@@ -392,16 +410,15 @@ function AchievementPortal() {
     setIsSaving(true);
 
     try {
-      // Identify achievements to update and create
-      const achievementsToUpdate = draftAchievements.filter((ach) => ach._id);
-      const achievementsToCreate = draftAchievements.filter((ach) => !ach._id);
+      // **Separate Achievements into Those to Update and to Create**
+      const achievementsToUpdate = draftAchievements.filter((ach) => !ach.isNew);
+      const achievementsToCreate = draftAchievements.filter((ach) => ach.isNew);
 
-      // Handle image uploads for updated and new achievements
-      for (let i = 0; i < draftAchievements.length; i++) {
-        const ach = draftAchievements[i];
+      // **Handle Image Uploads for Existing Achievements Only**
+      for (let i = 0; i < achievementsToUpdate.length; i++) {
+        const ach = achievementsToUpdate[i];
         if (ach.newImageFile) {
-          // **IMPORTANT:** Ensure that changing the type does not reset player progression on the backend.
-          // This might require additional backend logic to handle type transitions appropriately.
+          // Upload the new image and obtain the imageUrl
           const imageUrl = await uploadAchievementImage(
             listId,
             ach._id,
@@ -412,22 +429,27 @@ function AchievementPortal() {
                 (progressEvent.loaded * 100) / progressEvent.total
               );
               const updatedDraft = [...draftAchievements];
-              updatedDraft[i].uploadProgress = progress;
-              setDraftAchievements(updatedDraft);
+              // Find the index of the achievement to update its uploadProgress
+              const draftIndex = updatedDraft.findIndex((a) => a._id === ach._id);
+              if (draftIndex !== -1) {
+                updatedDraft[draftIndex].uploadProgress = progress;
+                setDraftAchievements(updatedDraft);
+              }
             }
           );
+          // Update the achievement's imageUrl with the newly uploaded image
           ach.imageUrl = imageUrl;
           ach.uploadProgress = 100;
           delete ach.newImageFile; // Remove the file reference after upload
         }
       }
 
-      // Handle deletions
+      // **Handle Deletions (Only Existing Achievements)**
       for (const ach of deletedAchievements) {
         await deleteAchievement(ach._id, apiKey);
       }
 
-      // Update existing achievements
+      // **Prepare Promises for Updating Existing Achievements**
       const updatePromises = achievementsToUpdate.map((ach) =>
         updateAchievement(
           listId,
@@ -445,30 +467,28 @@ function AchievementPortal() {
         )
       );
 
-      // Create new achievements
-      const createPromises = achievementsToCreate.map((ach) =>
-        createAchievement(
-          listId,
-          {
-            title: ach.title,
-            description: ach.description,
-            type: ach.type,
-            progressGoal: ach.type === 'progress' ? ach.progressGoal : 1,
-            isHidden: ach.isHidden,
-            imageUrl: ach.imageUrl,
-            order: ach.order,
-          },
-          apiKey
-        )
-      );
+      // **Prepare Promises for Creating New Achievements**
+      const createPromises = achievementsToCreate.map((ach) => {
+        // Prepare the payload, excluding imageUrl initially
+        const payload = {
+          title: ach.title,
+          description: ach.description,
+          type: ach.type,
+          progressGoal: ach.type === 'progress' ? ach.progressGoal : 1,
+          isHidden: ach.isHidden,
+          order: ach.order,
+        };
 
-      // Execute all PATCH and POST requests concurrently
+        return createAchievement(listId, payload, apiKey);
+      });
+
+      // **Execute All PATCH and POST Requests Concurrently**
       const [updateResults, createResults] = await Promise.all([
         Promise.allSettled(updatePromises),
         Promise.allSettled(createPromises),
       ]);
 
-      // Handle update results
+      // **Handle Update Results**
       const failedUpdates = updateResults
         .map((result, idx) => {
           if (result.status === 'rejected') {
@@ -483,7 +503,7 @@ function AchievementPortal() {
         })
         .filter((res) => res !== null);
 
-      // Handle create results
+      // **Handle Create Results**
       const failedCreates = createResults
         .map((result, idx) => {
           if (result.status === 'rejected') {
@@ -498,7 +518,7 @@ function AchievementPortal() {
         })
         .filter((res) => res !== null);
 
-      // Notify user about failed updates
+      // **Notify User About Failed Updates**
       if (failedUpdates.length > 0 || failedCreates.length > 0) {
         let errorMsg = '';
         if (failedUpdates.length > 0) {
@@ -510,7 +530,7 @@ function AchievementPortal() {
         if (failedCreates.length > 0) {
           errorMsg += `Failed to create ${failedCreates.length} achievement(s).\n`;
           failedCreates.forEach((fail, idx) => {
-            errorMsg += `${idx + 1}. Title: ${fail.achievement.title} - ${fail.error}\n`;
+            errorMsg += `${idx + 1}. Title: ${fail.achievement.title || 'Untitled'} - ${fail.error}\n`;
           });
         }
 
@@ -522,16 +542,65 @@ function AchievementPortal() {
           isClosable: true,
         });
       } else {
-        // Everything succeeded
-        toast({
-          title: 'Success',
-          description: 'All achievements updated and created successfully.',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
+        // **Everything Succeeded**
+
+        // **Upload Images for Newly Created Achievements**
+        const successfullyCreatedAchievements = createResults
+          .map((result, idx) => {
+            if (result.status === 'fulfilled') {
+              return result.value.data; // Assuming the response contains the created achievement data
+            }
+            return null;
+          })
+          .filter((ach) => ach !== null);
+
+        const imageUploadPromises = successfullyCreatedAchievements.map((ach, idx) => {
+          const draftAch = achievementsToCreate[idx];
+          if (draftAch.newImageFile) {
+            return uploadAchievementImage(
+              listId,
+              ach._id,
+              draftAch.newImageFile,
+              apiKey,
+              (progressEvent) => {
+                const progress = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total
+                );
+                setDraftAchievements((prevDraft) => {
+                  const newDraft = [...prevDraft];
+                  // Find the index of the achievement to update its uploadProgress
+                  const draftIndex = newDraft.findIndex((a) => a._id === ach._id);
+                  if (draftIndex !== -1) {
+                    newDraft[draftIndex].uploadProgress = progress;
+                    return newDraft;
+                  }
+                  return prevDraft;
+                });
+              }
+            )
+              .then((imageUrl) => {
+                // Update the achievement's imageUrl in the backend or state as needed
+                // This might require an additional API call to update the achievement with the imageUrl
+                return updateAchievement(
+                  listId,
+                  ach._id,
+                  { imageUrl },
+                  apiKey
+                );
+              })
+              .catch((uploadError) => {
+                throw new Error(
+                  `Image upload failed for Achievement ID: ${ach._id}.`
+                );
+              });
+          }
+          return Promise.resolve();
         });
 
-        // Refresh achievements from backend to sync state
+        // **Execute Image Uploads**
+        await Promise.all(imageUploadPromises);
+
+        // **Refresh Achievements from Backend to Sync State**
         const refreshedAchievementsResponse = await axios.get(
           `/api/lists/${listId}/achievements`,
           {
@@ -542,23 +611,32 @@ function AchievementPortal() {
         const refreshedAchievements = refreshedAchievementsResponse.data.map((ach) => ({
           ...ach,
           uploadProgress: 0,
+          isNew: false,
         }));
 
         setAchievements(refreshedAchievements);
         setOriginalAchievements(refreshedAchievements);
 
-        // Recreate the originalAchievementsMap
+        // **Recreate the originalAchievementsMap**
         const refreshedMap = {};
         refreshedAchievements.forEach((ach) => {
           refreshedMap[ach._id] = { ...ach };
         });
         setOriginalAchievementsMap(refreshedMap);
 
-        // Exit edit mode
+        // **Exit Edit Mode**
         setIsEditing(false);
         setDraftAchievements([]);
         setDeletedAchievements([]); // Clear deletions
         setHasUnsavedChanges(false);
+
+        toast({
+          title: 'Success',
+          description: 'All achievements updated and created successfully.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
       }
     } catch (error) {
       console.error('Error during save:', error);
@@ -865,20 +943,6 @@ function AchievementPortal() {
             ) : (
               // 4. Edit Mode with Draft Achievements and Drag-and-Drop
               <VStack align="start" spacing={4}>
-                {/* Display Warning if No Achievements to Edit */}
-                {draftAchievements.length === 0 && (
-                  <Box
-                    p={{ base: 4, md: 6 }}
-                    bg="yellow.100"
-                    borderRadius="md"
-                    w="100%"
-                  >
-                    <HStack>
-                      <WarningIcon color="yellow.500" />
-                      <Text fontSize={{ base: 'md', md: 'lg' }}>No achievements available to edit.</Text>
-                    </HStack>
-                  </Box>
-                )}
                 {/* Render Draft Achievements with Drag-and-Drop */}
                 <DndContext
                   sensors={sensorsDnd}
@@ -886,18 +950,19 @@ function AchievementPortal() {
                   onDragEnd={onDragEndHandler}
                 >
                   <SortableContext
-                    items={draftAchievements.map((ach, idx) => ach._id || `new-${idx}`)}
+                    items={draftAchievements.map((ach) => ach._id || `new-${ach.order}`)}
                     strategy={verticalListSortingStrategy}
                   >
                     <VStack spacing={4} align="stretch" w="100%">
                       {draftAchievements.map((ach, idx) => (
                         <SortableAchievementItem
                           key={ach._id || `new-${idx}`}
+                          id={ach._id || `new-${idx}`} // Pass the id prop
                           achievement={ach}
                           index={idx}
                           onChange={handleDraftAchievementChange}
-                          onDelete={handleDeleteAchievement}
-                          handleImageChange={handleDraftImageChange}
+                          onDelete={openDeleteModal}
+                          handleImageChange={handleDraftImageChange} // Pass the function here
                         />
                       ))}
                     </VStack>
@@ -911,10 +976,11 @@ function AchievementPortal() {
                   alignSelf="flex-start"
                   aria-label="Add New Achievement"
                   size="md"
+                  isDisabled={draftAchievements.length >= MAX_ACHIEVEMENTS} // Disable if limit is reached
                 >
                   Add Achievement
                 </Button>
-                {/* **NEW: Display Warning if No Achievements in Draft** */}
+                {/* Display Warning if No Achievements in Draft */}
                 {draftAchievements.length === 0 && (
                   <Box p={2} bg="red.100" borderRadius="md" w="100%">
                     <HStack>
@@ -953,40 +1019,39 @@ function AchievementPortal() {
             )}
           </>
         )}
-      </Box>
 
-      {/* Delete Confirmation Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} isCentered size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Delete Achievement</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <HStack>
-              <DeleteIcon color="red.500" />
-              <Text>
-                Are you sure you want to delete the achievement "
-                {achievementToDelete?.title || 'Untitled'}"?
-              </Text>
-            </HStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose} size="md">
-              Cancel
-            </Button>
-            <Button
-              colorScheme="red"
-              onClick={confirmDeleteAchievement}
-              size="md"
-            >
-              Delete
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+        {/* Delete Confirmation Modal */}
+        <Modal isOpen={isOpen} onClose={onClose} isCentered size="lg">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Delete Achievement</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <HStack>
+                <DeleteIcon color="red.500" />
+                <Text>
+                  Are you sure you want to delete the achievement "
+                  {achievementToDelete?.title || 'Untitled'}"?
+                </Text>
+              </HStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" mr={3} onClick={onClose} size="md">
+                Cancel
+              </Button>
+              <Button
+                colorScheme="red"
+                onClick={confirmDeleteAchievement}
+                size="md"
+              >
+                Delete
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </Box>
     </Box>
   );
-
 }
 
 export default AchievementPortal;

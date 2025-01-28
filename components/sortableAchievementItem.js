@@ -5,29 +5,31 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
   Box,
+  Text,
+  Input,
+  Textarea,
   HStack,
   IconButton,
-  Image,
-  Input,
-  Select,
   Checkbox,
-  Text,
-  Button,
+  Image,
   Progress,
+  VStack,
   Tooltip,
   useColorModeValue,
+  Select,
 } from '@chakra-ui/react';
-import {
-  DeleteIcon,
-} from '@chakra-ui/icons';
+import { DeleteIcon, DragHandleIcon } from '@chakra-ui/icons';
+import PropTypes from 'prop-types';
 
 const SortableAchievementItem = ({
+  id, // Unique identifier for sortable (should be a string)
   achievement,
   index,
   onChange,
   onDelete,
   handleImageChange,
 }) => {
+  // Utilize useSortable hook
   const {
     attributes,
     listeners,
@@ -35,73 +37,78 @@ const SortableAchievementItem = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: achievement._id });
+  } = useSortable({ id });
 
+  // Debugging logs to verify the types
+  console.log('SortableAchievementItem - id:', id, typeof id);
+  console.log('SortableAchievementItem - achievement._id:', achievement._id, typeof achievement._id);
+
+  // Apply transformations and transitions
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    cursor: 'grab',
   };
 
   return (
     <Box
       ref={setNodeRef}
       style={style}
-      w="100%"
-      p={{ base: 3, md: 4 }}
-      border="1px solid"
-      borderColor={useColorModeValue("gray.200", "gray.400")}
+      borderWidth={1}
       borderRadius="md"
-      bg={isDragging ? useColorModeValue("gray.100", "white.700") : useColorModeValue("white", "gray.700")}
-      boxShadow={isDragging ? 'lg' : 'sm'}
+      p={4}
+      mb={4}
+      bg={useColorModeValue('white', 'gray.700')}
+      boxShadow={isDragging ? 'lg' : 'md'}
+      position="relative"
     >
-      <HStack justifyContent="space-between" alignItems="flex-start" flexDirection={{ base: 'column', md: 'row' }}>
-        {/* Drag Handle */}
-        <Box {...attributes} {...listeners} cursor="grab">
-          <Text fontSize="xl" fontWeight="bold" mr={2} display="inline">
-            &#x2630; {/* Unicode for hamburger menu */}
-          </Text>
-        </Box>
-        <Box flex="1">
-          {/* Achievement Fields */}
-          <HStack justifyContent="space-between" alignItems="flex-start" flexDirection={{ base: 'column', md: 'row' }}>
-            <Box flex="1">
-              <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                Title:
-              </Text>
-              <Input
-                placeholder="Achievement Title"
-                value={achievement.title}
-                onChange={(e) => onChange(index, 'title', e.target.value)}
-                aria-label={`Title for Achievement #${index + 1}`}
-                size="md"
-                mb={2}
-              />
-            </Box>
-          </HStack>
+      {/* Drag Handle */}
+      <Box
+        {...attributes}
+        {...listeners}
+        position="absolute"
+        top={2}
+        left={2}
+        cursor="grab"
+        zIndex={2}
+      >
+        <DragHandleIcon />
+      </Box>
 
-          <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-            Description:
-          </Text>
-          <Input
-            placeholder="Description of the achievement."
-            value={achievement.description}
-            onChange={(e) => onChange(index, 'description', e.target.value)}
-            aria-label={`Description for Achievement #${index + 1}`}
-            size="md"
-            mb={2}
-          />
+      <HStack justifyContent="space-between" alignItems="flex-start">
+        {/* Achievement Content */}
+        <VStack align="start" spacing={4} flex="1" ml={8}> {/* Add left margin to avoid overlap with drag handle */}
+          {/* Title */}
+          <Box w="100%">
+            <Text fontWeight="bold">Title</Text>
+            <Input
+              placeholder="Enter achievement title"
+              value={achievement.title}
+              onChange={(e) => onChange(index, 'title', e.target.value)}
+              aria-label={`Achievement ${index + 1} Title`}
+            />
+          </Box>
 
-          <HStack spacing={4} mb={2}>
+          {/* Description */}
+          <Box w="100%">
+            <Text fontWeight="bold">Description</Text>
+            <Textarea
+              placeholder="Enter achievement description"
+              value={achievement.description}
+              onChange={(e) => onChange(index, 'description', e.target.value)}
+              aria-label={`Achievement ${index + 1} Description`}
+            />
+          </Box>
+
+          {/* Type and Progress Goal */}
+          <HStack spacing={4} w="100%">
             <Box flex="1">
-              <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                Type:
-              </Text>
+              <Text fontWeight="bold">Type</Text>
               <Select
                 value={achievement.type}
                 onChange={(e) => onChange(index, 'type', e.target.value)}
-                aria-label={`Type for Achievement #${index + 1}`}
-                size="md"
+                aria-label={`Achievement ${index + 1} Type`}
               >
                 <option value="progress">Progress</option>
                 <option value="milestone">Milestone</option>
@@ -109,100 +116,105 @@ const SortableAchievementItem = ({
             </Box>
             {achievement.type === 'progress' && (
               <Box flex="1">
-                <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-                  Progress Goal:
-                </Text>
+                <Text fontWeight="bold">Progress Goal</Text>
                 <Input
                   type="number"
-                  onWheel={(e) => e.target.blur()}
-                  placeholder="10, 50, etc."
-                  value={achievement.progressGoal != null ? achievement.progressGoal : ''}
+                  placeholder="Set progress goal"
+                  value={achievement.progressGoal || ''}
                   onChange={(e) => onChange(index, 'progressGoal', e.target.value)}
-                  aria-label={`Progress Goal for Achievement #${index + 1}`}
-                  size="md"
+                  aria-label={`Achievement ${index + 1} Progress Goal`}
                 />
               </Box>
             )}
           </HStack>
 
+          {/* Hidden Checkbox */}
           <Checkbox
             isChecked={achievement.isHidden}
             onChange={(e) => onChange(index, 'isHidden', e.target.checked)}
-            aria-label={`Hidden status for Achievement #${index + 1}`}
-            mb={2}
+            aria-label={`Achievement ${index + 1} Hidden`}
           >
-            Hidden Achievement?
+            Hidden Achievement
           </Checkbox>
 
-          {/* Image Upload or Display */}
-          <Box mb={2}>
-            <Text fontWeight="semibold" fontSize={{ base: 'sm', md: 'md' }}>
-              Image (optional):
-            </Text>
-            {achievement.imageUrl ? (
-              <>
-                <Image
-                  src={achievement.imageUrl}
-                  alt={achievement.title}
-                  boxSize={{ base: '80px', md: '100px' }}
-                  objectFit="cover"
-                  mt={2}
-                  borderRadius="md"
-                />
-                <Button
-                  size="sm"
-                  mt={2}
-                  onClick={() => onChange(index, 'imageUrl', '')}
-                  colorScheme="red"
-                  leftIcon={<DeleteIcon />}
-                  aria-label={`Remove Image for Achievement #${index + 1}`}
-                >
-                  Remove Image
-                </Button>
-              </>
-            ) : (
-              <>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleImageChange(index, e.target.files[0]);
-                    }
-                  }}
-                  aria-label={`Upload Image for Achievement #${index + 1}`}
-                  size="md"
-                  mt={2}
-                />
-                {/* Display upload progress, if any */}
-                {achievement.uploadProgress > 0 && achievement.uploadProgress < 100 && (
-                  <Progress
-                    value={achievement.uploadProgress}
-                    size="sm"
-                    mt={2}
-                    colorScheme="green"
-                    aria-label={`Upload Progress for Achievement #${index + 1}`}
-                  />
-                )}
-              </>
+          {/* Image Upload */}
+          <Box w="100%">
+            <Text fontWeight="bold">Image Upload</Text>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleImageChange(index, e.target.files[0]);
+                }
+              }}
+              aria-label={`Achievement ${index + 1} Image Upload`}
+            />
+            {achievement.imageUrl && (
+              <Image
+                src={achievement.imageUrl}
+                alt={`Achievement ${index + 1} Image`}
+                boxSize="100px"
+                objectFit="cover"
+                mt={2}
+                borderRadius="md"
+              />
             )}
           </Box>
-        </Box>
+
+          {/* Upload Progress */}
+          {achievement.uploadProgress > 0 && achievement.uploadProgress < 100 && (
+            <Box w="100%">
+              <Text fontWeight="bold">Image Upload Progress</Text>
+              <Progress
+                value={achievement.uploadProgress}
+                size="sm"
+                colorScheme="green"
+                aria-label={`Achievement ${index + 1} Image Upload Progress`}
+              />
+            </Box>
+          )}
+        </VStack>
+
         {/* Delete Button */}
         <Tooltip label="Delete Achievement" aria-label="Delete Achievement Tooltip">
           <IconButton
             icon={<DeleteIcon />}
-            onClick={() => onDelete(achievement._id)}
-            size="sm"
+            onClick={() => {
+              console.log(`Delete button clicked for achievement ID: ${id}`); // Debug log
+              onDelete(id); // Passes string ID
+            }}
             colorScheme="red"
-            aria-label="Delete Achievement"
             variant="ghost"
-            alignSelf="center"
+            aria-label={`Delete Achievement ${index + 1}`}
+            alignSelf="flex-start"
           />
         </Tooltip>
       </HStack>
     </Box>
   );
+};
+
+SortableAchievementItem.propTypes = {
+  id: PropTypes.string.isRequired, // Unique identifier for sortable (should be a string)
+  achievement: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    progressGoal: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
+    isHidden: PropTypes.bool.isRequired,
+    imageFile: PropTypes.instanceOf(File),
+    imageUrl: PropTypes.string,
+    uploadProgress: PropTypes.number,
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+  handleImageChange: PropTypes.func.isRequired,
 };
 
 export default SortableAchievementItem;
