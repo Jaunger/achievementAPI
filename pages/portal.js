@@ -40,6 +40,7 @@ import {
 } from '../utils/apiUtil';
 import { v4 as uuidv4 } from 'uuid';
 import Box from '../components/customBox';
+import { MIDDLEWARE_REACT_LOADABLE_MANIFEST } from 'next/dist/shared/lib/constants';
 
 const MAX_ACHIEVEMENTS = 10; // Define the maximum number of achievements allowed
 
@@ -312,6 +313,7 @@ function AchievementPortal() {
   };
 
   const handleDeleteAchievement = (achievement) => {
+    console.log(`Delete button clicked for achievement ID: ${achievement}`); // Debug log
     if (achievement.isNew) {
       // If the achievement is new (draft), simply remove it from drafts
       setDraftAchievements((prev) => prev.filter((ach) => ach._id !== achievement._id));
@@ -324,7 +326,8 @@ function AchievementPortal() {
       });
     } else {
       // If the achievement exists in the backend, mark it for deletion
-      setDeletedAchievements((prev) => [...prev, achievement]);
+      console.log(`Marking achievement for deletion: ${achievement._id}`);
+      setDeletedAchievements((prev) => [...prev, achievement._id]);
       setDraftAchievements((prev) => prev.filter((ach) => ach._id !== achievement._id));
       toast({
         title: 'Achievement Marked for Deletion',
@@ -446,7 +449,7 @@ function AchievementPortal() {
 
       // **Handle Deletions (Only Existing Achievements)**
       for (const ach of deletedAchievements) {
-        await deleteAchievement(ach._id, apiKey);
+        await deleteAchievement(listId,ach, apiKey);
       }
 
       // **Prepare Promises for Updating Existing Achievements**

@@ -123,6 +123,7 @@ const SortableAchievementItem = ({
                   value={achievement.progressGoal || ''}
                   onChange={(e) => onChange(index, 'progressGoal', e.target.value)}
                   aria-label={`Achievement ${index + 1} Progress Goal`}
+                  onWheel={(e) => e.target.blur()}
                 />
               </Box>
             )}
@@ -182,7 +183,7 @@ const SortableAchievementItem = ({
             icon={<DeleteIcon />}
             onClick={() => {
               console.log(`Delete button clicked for achievement ID: ${id}`); // Debug log
-              onDelete(id); // Passes string ID
+              onDelete(achievement); // Passes string ID
             }}
             colorScheme="red"
             variant="ghost"
@@ -196,7 +197,7 @@ const SortableAchievementItem = ({
 };
 
 SortableAchievementItem.propTypes = {
-  id: PropTypes.string.isRequired, // Unique identifier for sortable (should be a string)
+  id: PropTypes.string.isRequired, 
   achievement: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
@@ -214,7 +215,7 @@ SortableAchievementItem.propTypes = {
   index: PropTypes.number.isRequired,
   onChange: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
-  handleImageChange: PropTypes.func.isRequired, // Now handleDraftImageChange
+  handleImageChange: PropTypes.func.isRequired, 
 };
 
 export default SortableAchievementItem;
