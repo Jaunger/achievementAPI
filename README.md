@@ -377,36 +377,35 @@ Each page is designed for easy navigation, making achievement management seamles
 
 ---
 
-## Screenshots & Videos
+### Screenshots & Videos
 
 To help you better understand the functionality and interface of our achievement SDK, here are some screenshots and a demonstration video of the platform in action.
 
-### 📷 Screenshots
+## 📷 Screenshots
 
 Below are images showcasing different pages of the achievement management system:
 
 - **Documentation Page**  
-  ![Documentation Page](DocumentationPage.png)
+  <img src="imagesvideos/DocumentationPage.png" alt="Documentation Page" width="500">
 
 - **Create Achievement Page**  
-  ![Create Achievement Page](CreatePage.png)
+  <img src="imagesvideos/CreatePage.png" alt="Create Page" width="500">
 
 - **Home Page**  
-  ![Home Page](HomePage.png)
+  <img src="imagesvideos/HomePage.png" alt="Home Page" width="500">
 
 - **Portal Page**  
-  ![Portal Page](PortalPage.png)
+  <img src="imagesvideos/PortalPage.png" alt="Portal Page" width="500">
 
-### 🎥 Video Demonstration
+## 🎥 Video Demonstration
 
 Watch a short demonstration video to see the system in action:
 
-[![Watch the Video](FrontVideo.mp4)](FrontVideo.mp4) 
+[![Watch the Video](imagesvideos/FrontVideo.mp4)](imagesvideos/FrontVideo.mp4)  
 
-[![Watch the Video]](ExampleApp.mov)(ExampleApp.mov)
+[![Watch the Video](imagesvideos/ExampleApp.mov)](imagesvideos/ExampleApp.mov)  
 
 To view the full demo, click on the link above or open `FrontVideo.mp4` in your media player.
-
 ---
 
 ## 🛡️ Security
