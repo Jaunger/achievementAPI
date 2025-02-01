@@ -401,11 +401,10 @@ Below are images showcasing different pages of the achievement management system
 
 Watch a short demonstration video to see the system in action:
 
-[![Watch the Video](imagesvideos/FrontVideo.mp4)](imagesvideos/FrontVideo.mp4)  
+[![Watch the Video](https://img.youtube.com/vi/w70FIFfKu4w/0.jpg)](https://youtu.be/w70FIFfKu4w)
 
-[![Watch the Video](imagesvideos/ExampleApp.mov)](imagesvideos/ExampleApp.mov)  
+[Example App](https://www.youtube.com/shorts/zDM7vvjh5Cc)
 
-To view the full demo, click on the link above or open `FrontVideo.mp4` in your media player.
 ---
 
 ## 🛡️ Security
