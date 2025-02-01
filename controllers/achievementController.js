@@ -28,7 +28,7 @@ exports.createAchievement = async (req, res) => {
       title,
       description,
       type,
-      progressGoal: type === 'progress' ? progressGoal : null,
+      progressGoal: type === 'progress' ? progressGoal : 1,
       isHidden,
       imageUrl,
       order: nextOrder, // Assign order
