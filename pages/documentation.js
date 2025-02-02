@@ -1,10 +1,4 @@
-/**
- * HowToUse.js
- * This page provides detailed instructions on how to interact with the AchievementsAPI.
- * It explains the available API endpoints, how to handle errors, and includes examples for integration.
- */
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   Heading,
   Code,
@@ -18,10 +12,44 @@ import {
   ListItem,
   UnorderedList,
   useColorModeValue,
-} from '@chakra-ui/react';
-import Box from '../components/customBox';
-import Text from '../components/customText';
+} from "@chakra-ui/react";
+import Box from "../components/customBox";
+import Text from "../components/customText";
 
+/**
+ * Component that provides documentation for the AchievementsAPI.
+ * It includes a Table of Contents and detailed sections for various API functionalities.
+ *
+ * @component
+ * @returns {JSX.Element} The HowToUse component.
+ *
+ * @example
+ * <HowToUse />
+ *
+ * @description
+ * The HowToUse component renders a documentation page with the following features:
+ * - A Table of Contents with links to different sections.
+ * - Accordion sections for API Models, Setup, Achievements Management, Achievement Lists, Player Management, and API Key Management.
+ * - Detailed code examples and explanations for each section.
+ *
+ * @function
+ * @name HowToUse
+ *
+ * @property {Object} sections - Refs for each section to enable scrolling.
+ * @property {Object} sections.setup - Ref for the setup section.
+ * @property {Object} sections.achievementsManagement - Ref for the achievements management section.
+ * @property {Object} sections.achievementLists - Ref for the achievement lists section.
+ * @property {Object} sections.playerManagement - Ref for the player management section.
+ * @property {Object} sections.apiKeyManagement - Ref for the API key management section.
+ * @property {Object} sections.apiModels - Ref for the API models section.
+ *
+ * @property {Array} activeIndices - State to manage which Accordion items are open.
+ * @property {Function} setActiveIndices - Function to update the activeIndices state.
+ *
+ * @property {Function} handleToCClick - Function to handle Table of Contents link clicks.
+ * @param {string} sectionKey - The key of the section to scroll to.
+ * @param {number} index - The index of the Accordion item to toggle.
+ */
 const HowToUse = () => {
   // State to manage which Accordion items are open
   const [activeIndices, setActiveIndices] = useState([]);
@@ -33,6 +61,7 @@ const HowToUse = () => {
     achievementLists: useRef(null),
     playerManagement: useRef(null),
     apiKeyManagement: useRef(null),
+    apiModels: useRef(null),
   };
 
   // Function to handle ToC link clicks
@@ -46,49 +75,64 @@ const HowToUse = () => {
 
     setTimeout(() => {
       if (sections[sectionKey].current) {
-        sections[sectionKey].current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        sections[sectionKey].current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }
     }, 300); // Adjust delay as needed
   };
 
   return (
     <Box
- bg={useColorModeValue('gray.50', 'gray.800')}
-    minH="100vh"
-    p={{ base: 4, md: 8 }}
+      bg={useColorModeValue("gray.50", "gray.800")}
+      minH="100vh"
+      p={{ base: 4, md: 8 }}
     >
       {/* Central container with white background */}
-      <Box
-        maxW="4xl"
-        mx="auto"
-        p={8}
-        shadow="lg"
-        borderRadius="lg"
-      >
+      <Box maxW="4xl" mx="auto" p={8} shadow="lg" borderRadius="lg">
         <Heading as="h1" size="xl" mb={6} color="blue.600">
-          AchievementsAPI Documentation 
+          AchievementsAPI Documentation
         </Heading>
 
         <Text fontSize="lg" mb={8}>
-          This page provides a comprehensive guide on how to interact with the{' '}
+          This page provides a comprehensive guide on how to interact with the{" "}
           <strong>AchievementsAPI</strong>. Learn how to make requests, handle
           errors, and integrate achievements into your game or app.
         </Text>
 
         {/* Table of Contents */}
         <Box mb={8}>
-          <Heading as="h2" size="md" mb={2} color={useColorModeValue('blue.500', 'blue.300')}>
+          <Heading
+            as="h2"
+            size="md"
+            mb={2}
+            color={useColorModeValue("blue.500", "blue.300")}
+          >
             Table of Contents
           </Heading>
           <UnorderedList spacing={1} styleType="none" pl={0}>
             <ListItem>
               <Link
-                href="#how-to-setup-the-achievementslibrary"
+                href="#api-models"
                 color="blue.500"
-                _hover={{ textDecoration: 'underline' }}
+                _hover={{ textDecoration: "underline" }}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleToCClick('setup', 0);
+                  handleToCClick("apiModels", 5);
+                }}
+              >
+                • API Models
+              </Link>
+            </ListItem>
+            <ListItem>
+              <Link
+                href="#how-to-setup-the-achievementslibrary"
+                color="blue.500"
+                _hover={{ textDecoration: "underline" }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleToCClick("setup", 0);
                 }}
               >
                 • How to Setup the AchievementsLibrary
@@ -98,10 +142,10 @@ const HowToUse = () => {
               <Link
                 href="#achievements-management"
                 color="blue.500"
-                _hover={{ textDecoration: 'underline' }}
+                _hover={{ textDecoration: "underline" }}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleToCClick('achievementsManagement', 1);
+                  handleToCClick("achievementsManagement", 1);
                 }}
               >
                 • Achievements Management
@@ -111,10 +155,10 @@ const HowToUse = () => {
               <Link
                 href="#achievement-lists"
                 color="blue.500"
-                _hover={{ textDecoration: 'underline' }}
+                _hover={{ textDecoration: "underline" }}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleToCClick('achievementLists', 2);
+                  handleToCClick("achievementLists", 2);
                 }}
               >
                 • Achievement Lists
@@ -124,10 +168,10 @@ const HowToUse = () => {
               <Link
                 href="#player-management"
                 color="blue.500"
-                _hover={{ textDecoration: 'underline' }}
+                _hover={{ textDecoration: "underline" }}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleToCClick('playerManagement', 3);
+                  handleToCClick("playerManagement", 3);
                 }}
               >
                 • Player Management
@@ -137,10 +181,10 @@ const HowToUse = () => {
               <Link
                 href="#api-key-management"
                 color="blue.500"
-                _hover={{ textDecoration: 'underline' }}
+                _hover={{ textDecoration: "underline" }}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleToCClick('apiKeyManagement', 4);
+                  handleToCClick("apiKeyManagement", 4);
                 }}
               >
                 • API Key Management
@@ -157,6 +201,163 @@ const HowToUse = () => {
           index={activeIndices}
           onChange={(indices) => setActiveIndices(indices)}
         >
+          {/* API Models Section */}
+          <AccordionItem>
+            <h2>
+              <AccordionButton>
+                <Box flex="1" textAlign="left">
+                  <Heading as="h2" size="md" color="blue.500">
+                    API Models
+                  </Heading>
+                </Box>
+                <AccordionIcon />
+              </AccordionButton>
+            </h2>
+            <AccordionPanel pb={4}>
+              <div ref={sections.apiModels}>
+                {/* App Model */}
+                <Box mb={6}>
+                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400">
+                    App Model
+                  </Heading>
+                  <Text>
+                    Represents an application that integrates achievements.
+                  </Text>
+                  <Code
+                    display="block"
+                    whiteSpace="pre-wrap"
+                    p={4}
+                    borderRadius="md"
+                  >
+                    {`{
+            "title": "My Game",
+            "description": "An amazing RPG game.",
+            "createdAt": "2025-01-01T12:00:00Z",
+            "updatedAt": "2025-01-02T15:30:00Z"
+          }`}
+                  </Code>
+                </Box>
+
+                <Divider my={4} />
+
+                {/* AchievementList Model */}
+                <Box mb={6}>
+                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400">
+                    AchievementList Model
+                  </Heading>
+                  <Text>
+                    Represents a list of achievements for a specific app.
+                  </Text>
+                  <Code
+                    display="block"
+                    whiteSpace="pre-wrap"
+                    p={4}
+                    borderRadius="md"
+                  >
+                    {`{
+            "appId": "appId123",
+            "title": "Starter Achievements",
+            "description": "A set of beginner achievements.",
+            "achievements": ["achievementId1", "achievementId2"],
+            "createdAt": "2025-01-01T12:00:00Z",
+            "updatedAt": "2025-01-02T15:30:00Z"
+          }`}
+                  </Code>
+                </Box>
+
+                <Divider my={4} />
+
+                {/* Achievement Model */}
+                <Box mb={6}>
+                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400">
+                    Achievement Model
+                  </Heading>
+                  <Text>
+                    Defines an achievement, which can be a milestone or
+                    progress-based.
+                  </Text>
+                  <Code
+                    display="block"
+                    whiteSpace="pre-wrap"
+                    p={4}
+                    borderRadius="md"
+                  >
+                    {`{
+            "title": "First Kill",
+            "description": "Defeat your first enemy.",
+            "type": "progress",
+            "progressGoal": 10,
+            "isHidden": false,
+            "imageUrl": "https://example.com/image.png",
+            "order": 1,
+            "createdAt": "2025-01-01T12:00:00Z",
+            "updatedAt": "2025-01-02T15:30:00Z"
+          }`}
+                  </Code>
+                </Box>
+
+                <Divider my={4} />
+
+                {/* Player Model */}
+                <Box mb={6}>
+                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400">
+                    Player Model
+                  </Heading>
+                  <Text>
+                    Represents a player and their progress in achievements.
+                  </Text>
+                  <Code
+                    display="block"
+                    whiteSpace="pre-wrap"
+                    p={4}
+                    borderRadius="md"
+                  >
+                    {`{
+            "appId": "appId123",
+            "playerId": "player123",
+            "achievementsProgress": [
+              {
+                "achievementId": "achievementId123",
+                "progress": 5,
+                "dateUnlocked": null
+              }
+            ],
+            "createdAt": "2025-01-01T12:00:00Z",
+            "updatedAt": "2025-01-02T15:30:00Z"
+          }`}
+                  </Code>
+                </Box>
+
+                <Divider my={4} />
+
+                {/* ApiKey Model */}
+                <Box mb={6}>
+                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400">
+                    ApiKey Model
+                  </Heading>
+                  <Text>
+                    Represents an API key used to authenticate requests.
+                  </Text>
+                  <Code
+                    display="block"
+                    whiteSpace="pre-wrap"
+                    p={4}
+                    borderRadius="md"
+                  >
+                    {`{
+            "key": "abcdef123456",
+            "listId": "achievementList123",
+            "appId": "appId123",
+            "createdAt": "2025-01-01T12:00:00Z",
+            "expDate": "2025-12-31T23:59:59Z"
+          }`}
+                  </Code>
+                </Box>
+              </div>
+            </AccordionPanel>
+          </AccordionItem>
+          <Divider my={6} />
+
           {/* How to Setup the AchievementsLibrary Section */}
           <AccordionItem>
             <h2>
@@ -177,7 +378,8 @@ const HowToUse = () => {
                     1️⃣ Add the JitPack Repository 🏗️
                   </Heading>
                   <Text mb={2}>
-                    In your <strong>root</strong> <code>build.gradle</code> file:
+                    In your <strong>root</strong> <code>build.gradle</code>{" "}
+                    file:
                   </Text>
                   <Code
                     display="block"
@@ -205,7 +407,9 @@ const HowToUse = () => {
                     2️⃣ Add the Dependency 📦
                   </Heading>
                   <Text mb={2}>
-                    In your <strong>module-level</strong> <code>build.gradle</code> file, add <strong>AchievementsSDK</strong>:
+                    In your <strong>module-level</strong>{" "}
+                    <code>build.gradle</code> file, add{" "}
+                    <strong>AchievementsSDK</strong>:
                   </Text>
                   <Code
                     display="block"
@@ -228,7 +432,8 @@ const HowToUse = () => {
                     3️⃣ Provide Your API Key 🔑
                   </Heading>
                   <Text mb={2}>
-                    Open your <code>AndroidManifest.xml</code> and add the meta-data with your API key:
+                    Open your <code>AndroidManifest.xml</code> and add the
+                    meta-data with your API key:
                   </Text>
                   <Code
                     display="block"
@@ -245,7 +450,8 @@ const HowToUse = () => {
     </application>`}
                   </Code>
                   <Text>
-                    Replace <code>YOUR_API_KEY_HERE</code> with the API key from your achievement list.
+                    Replace <code>YOUR_API_KEY_HERE</code> with the API key from
+                    your achievement list.
                   </Text>
                 </Box>
 
@@ -257,7 +463,8 @@ const HowToUse = () => {
                     4️⃣ Initialize the SDK ⚙️
                   </Heading>
                   <Text mb={2}>
-                    In your <code>Application</code> class or the main <code>Activity</code>, initialize the SDK:
+                    In your <code>Application</code> class or the main{" "}
+                    <code>Activity</code>, initialize the SDK:
                   </Text>
                   <Code
                     display="block"
@@ -265,8 +472,7 @@ const HowToUse = () => {
                     p={4}
                     borderRadius="md"
                     my={2}
-
-                    >
+                  >
                     {`@Override
 protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -298,7 +504,8 @@ protected void onCreate(Bundle savedInstanceState) {
                     5️⃣ Create or Fetch a Player 👤
                   </Heading>
                   <Text mb={2}>
-                    Use <code>PlayerManager</code> to ensure the player is created or fetched before updating achievements:
+                    Use <code>PlayerManager</code> to ensure the player is
+                    created or fetched before updating achievements:
                   </Text>
                   <Code
                     display="block"
@@ -401,13 +608,16 @@ PlayerManager.updateAchievementProgress(
                   </Text>
                   <UnorderedList ml={4} spacing={1}>
                     <ListItem>
-                      <code>rawUsername</code> must match the one used when creating/fetching the player.
+                      <code>rawUsername</code> must match the one used when
+                      creating/fetching the player.
                     </ListItem>
                     <ListItem>
-                      <code>achievementId</code> must be the ID of an existing achievement.
+                      <code>achievementId</code> must be the ID of an existing
+                      achievement.
                     </ListItem>
                     <ListItem>
-                      Adjust <code>progressDelta</code> based on how much progress you want to record.
+                      Adjust <code>progressDelta</code> based on how much
+                      progress you want to record.
                     </ListItem>
                   </UnorderedList>
                 </Box>
@@ -433,7 +643,14 @@ PlayerManager.updateAchievementProgress(
               <div ref={sections.achievementsManagement}>
                 {/* GET /api/achievements */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="get-achievements-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="get-achievements-section"
+                  >
                     GET /api/achievements
                   </Heading>
                   <Text mb={2}>
@@ -443,8 +660,8 @@ PlayerManager.updateAchievementProgress(
                   <Text fontWeight="bold">Query Parameters:</Text>
                   <UnorderedList ml={4} spacing={1}>
                     <ListItem>
-                      <strong>listId</strong> (required): The ID of the achievement
-                      list.
+                      <strong>listId</strong> (required): The ID of the
+                      achievement list.
                     </ListItem>
                   </UnorderedList>
                   <Text mt={3} fontWeight="bold">
@@ -485,7 +702,14 @@ PlayerManager.updateAchievementProgress(
 
                 {/* POST /api/achievements */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="post-achievements-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="post-achievements-section"
+                  >
                     POST /api/achievements
                   </Heading>
                   <Text mb={2}>
@@ -538,7 +762,14 @@ PlayerManager.updateAchievementProgress(
 
                 {/* PATCH /api/achievements/:id */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="patch-achievements-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="patch-achievements-section"
+                  >
                     PATCH /api/achievements/:id
                   </Heading>
                   <Text mb={2}>Updates an existing achievement.</Text>
@@ -586,7 +817,14 @@ PlayerManager.updateAchievementProgress(
 
                 {/* DELETE /api/achievements/:id */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="delete-achievements-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="delete-achievements-section"
+                  >
                     DELETE /api/achievements/:id
                   </Heading>
                   <Text mb={2}>Deletes an achievement by ID.</Text>
@@ -633,11 +871,19 @@ PlayerManager.updateAchievementProgress(
               <div ref={sections.achievementLists}>
                 {/* GET /api/lists */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="get-lists-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="get-lists-section"
+                  >
                     GET /api/lists
                   </Heading>
                   <Text mb={2}>
-                    Retrieves all achievement lists associated with your API key.
+                    Retrieves all achievement lists associated with your API
+                    key.
                   </Text>
                   <Text fontWeight="bold">Headers:</Text>
                   <UnorderedList ml={4} spacing={1}>
@@ -674,7 +920,14 @@ PlayerManager.updateAchievementProgress(
 
                 {/* POST /api/lists */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="post-lists-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="post-lists-section"
+                  >
                     POST /api/lists
                   </Heading>
                   <Text mb={2}>Creates a new achievement list.</Text>
@@ -737,12 +990,17 @@ PlayerManager.updateAchievementProgress(
               <div ref={sections.playerManagement}>
                 {/* POST /api/players */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="post-players-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="post-players-section"
+                  >
                     POST /api/players
                   </Heading>
-                  <Text mb={2}>
-                    Creates or fetches a player profile.
-                  </Text>
+                  <Text mb={2}>Creates or fetches a player profile.</Text>
                   <Text fontWeight="bold">Headers:</Text>
                   <UnorderedList ml={4} spacing={1}>
                     <ListItem>
@@ -780,6 +1038,107 @@ PlayerManager.updateAchievementProgress(
                   </Code>
                 </Box>
               </div>
+              {/* Update Player Progress Section */}
+              <Box mb={6}>
+                <Heading
+                  as="h3"
+                  size="sm"
+                  mt={4}
+                  mb={2}
+                  color="blue.400"
+                  id="update-player-progress"
+                >
+                  PATCH /api/players/:appId/:pId/progress
+                </Heading>
+                <Text mb={2}>
+                  Updates a player's achievement progress. This endpoint
+                  increments progress and checks if the achievement is
+                  completed.
+                </Text>
+                <Text fontWeight="bold">Path Parameters:</Text>
+                <UnorderedList ml={4} spacing={1}>
+                  <ListItem>
+                    <strong>appId</strong> (required): The ID of the app.
+                  </ListItem>
+                  <ListItem>
+                    <strong>pId</strong> (required): The player's ID.
+                  </ListItem>
+                </UnorderedList>
+                <Text mt={3} fontWeight="bold">
+                  Request Body:
+                </Text>
+                <Code
+                  display="block"
+                  whiteSpace="pre-wrap"
+                  p={4}
+                  borderRadius="md"
+                >
+                  {`{
+  "achievementId": "achievementId123",
+  "progressDelta": 10
+}`}
+                </Code>
+                <Text mt={3} fontWeight="bold">
+                  Example Response:
+                </Text>
+                <Code
+                  display="block"
+                  whiteSpace="pre-wrap"
+                  p={4}
+                  borderRadius="md"
+                >
+                  {`{
+  "appId": "appId123",
+  "playerId": "player123",
+  "achievementsProgress": [
+    {
+      "achievementId": "achievementId123",
+      "progress": 15,
+      "dateUnlocked": null
+    }
+  ]
+}`}
+                </Code>
+              </Box>
+
+              <Divider my={4} />
+
+              {/* Delete Player Section */}
+              <Box mb={6}>
+                <Heading
+                  as="h3"
+                  size="sm"
+                  mt={4}
+                  mb={2}
+                  color="blue.400"
+                  id="delete-player"
+                >
+                  DELETE /api/players/:appId/:pId
+                </Heading>
+                <Text mb={2}>Deletes a player from the system.</Text>
+                <Text fontWeight="bold">Path Parameters:</Text>
+                <UnorderedList ml={4} spacing={1}>
+                  <ListItem>
+                    <strong>appId</strong> (required): The ID of the app.
+                  </ListItem>
+                  <ListItem>
+                    <strong>pId</strong> (required): The player's ID.
+                  </ListItem>
+                </UnorderedList>
+                <Text mt={3} fontWeight="bold">
+                  Example Response:
+                </Text>
+                <Code
+                  display="block"
+                  whiteSpace="pre-wrap"
+                  p={4}
+                  borderRadius="md"
+                >
+                  {`{
+  "message": "Player deleted successfully."
+}`}
+                </Code>
+              </Box>
             </AccordionPanel>
           </AccordionItem>
 
@@ -801,7 +1160,14 @@ PlayerManager.updateAchievementProgress(
               <div ref={sections.apiKeyManagement}>
                 {/* GET /api/apikeys */}
                 <Box mb={6}>
-                  <Heading as="h3" size="sm" mt={4} mb={2} color="blue.400" id="get-apikeys-section">
+                  <Heading
+                    as="h3"
+                    size="sm"
+                    mt={4}
+                    mb={2}
+                    color="blue.400"
+                    id="get-apikeys-section"
+                  >
                     GET /api/apikeys
                   </Heading>
                   <Text mb={2}>

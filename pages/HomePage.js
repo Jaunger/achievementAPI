@@ -1,32 +1,46 @@
+import React, { useState } from "react";
+import { Heading, Button, VStack, useToast } from "@chakra-ui/react";
+import { useRouter } from "next/router";
+import Text from "../components/customText";
+import Box from "../components/customBox";
+
 /**
- * HomePage
- * This is the landing page of the Achievement Dev Portal.
- * It allows users to navigate to manage or create new achievement lists and provides guidance on API usage.
+ * HomePage component renders the main interface for the Achievement Dev Portal.
+ * It provides options to manage existing achievement lists or create new ones.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered HomePage component.
+ *
+ * @example
+ * <HomePage />
+ *
+ * @function
+ * @name HomePage
+ *
+ * @description
+ * The HomePage component includes:
+ * - A welcome message and description.
+ * - A section to manage existing achievement lists, which navigates to the portal.
+ * - A section to create new achievement lists, which navigates to the create-list page.
+ * - An informational section on how to use the SDK and API key.
+ *
+ * @requires useRouter - Next.js router for navigation.
+ * @requires useToast - Chakra UI toast for notifications.
+ * @requires useState - React hook for managing state.
+ * @requires Box, Heading, Text, VStack, Button - Chakra UI components for layout and styling.
  */
-
-import React, { useState } from 'react';
-import {
-  Heading,
-  Button,
-  VStack,
-  useToast,
-} from '@chakra-ui/react';
-import { useRouter } from 'next/router';
-import Text from '../components/customText';
-import Box from '../components/customBox';
-
 function HomePage() {
   const router = useRouter();
   const toast = useToast();
   const [apiKey, setApiKey] = useState();
 
   const handleEditList = () => {
-    localStorage.setItem('apiKey', apiKey); // Store the API key for later use
-    router.push('/portal');
+    localStorage.setItem("apiKey", apiKey); // Store the API key for later use
+    router.push("/portal");
   };
 
   const handleCreateList = () => {
-    router.push('/create-list');
+    router.push("/create-list");
   };
 
   return (
@@ -68,7 +82,7 @@ function HomePage() {
             <Text fontSize="sm">
               Learn how to use the SDK and your API key:
             </Text>
-            <ol style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+            <ol style={{ marginLeft: "1.5rem", marginTop: "0.5rem" }}>
               <li>Initialize the SDK with your API key.</li>
               <li>Fetch or create achievements via the REST API.</li>
               <li>Use the UI here to manage or test your lists.</li>

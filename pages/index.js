@@ -1,14 +1,8 @@
-/**
- * HomePage
- * This is the landing page of the Achievement Dev Portal.
- * It highlights the features of the API and Android SDK, and allows users to manage or create achievement lists.
- */
-
 import React, { useState } from 'react';
-import { 
-  Heading, 
-  Button, 
-  VStack, 
+import {
+  Heading,
+  Button,
+  VStack,
   useToast,
   Text,
   Divider,
@@ -17,6 +11,18 @@ import {
 import Box from '../components/customBox';
 import { useRouter } from 'next/router';
 
+/**
+ * HomePage component renders the main interface for the Achievement Development Portal.
+ * It provides options to manage existing achievement lists or create new ones.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered HomePage component.
+ *
+ * @example
+ * return (
+ *   <HomePage />
+ * )
+*/
 function HomePage() {
   const router = useRouter();
   const toast = useToast();
@@ -36,8 +42,8 @@ function HomePage() {
 
   return (
     <Box bg={useColorModeValue('gray.50', 'gray.800')}
-    minH="100vh"
-    p={{ base: 4, md: 8 }}>
+      minH="100vh"
+      p={{ base: 4, md: 8 }}>
       <Box maxW="3xl" mx="auto" p={8} shadow="md" borderRadius="md">
         <Heading color="blue.500" mb={4}>
           Achievement Dev Portal
@@ -105,7 +111,7 @@ function HomePage() {
               Check out the developer documentation for detailed guides and examples for both the API and SDK.
             </Text>
           </Box>
-          
+
         </VStack>
 
         <Divider my={8} />

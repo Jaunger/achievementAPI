@@ -1,7 +1,5 @@
-// AchievementPortal.js
-
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Heading,
   Input,
@@ -26,31 +24,109 @@ import {
   useColorModeValue,
   Spinner,
   Text,
-} from '@chakra-ui/react';
-import { CopyIcon, EditIcon, CheckIcon, CloseIcon, DeleteIcon, AddIcon, WarningIcon, SearchIcon } from '@chakra-ui/icons';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import SortableAchievementItem from '../components/SortableAchievementItem';
-import { copyToClipboard } from '../utils/helper';
+} from "@chakra-ui/react";
+import {
+  CopyIcon,
+  EditIcon,
+  CheckIcon,
+  CloseIcon,
+  DeleteIcon,
+  AddIcon,
+  WarningIcon,
+  SearchIcon,
+} from "@chakra-ui/icons";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import SortableAchievementItem from "../components/SortableAchievementItem";
+import { copyToClipboard } from "../utils/helper";
 import {
   updateAchievement,
   createAchievement,
   uploadAchievementImage,
   deleteAchievement,
-} from '../utils/apiUtil';
-import { v4 as uuidv4 } from 'uuid';
-import Box from '../components/customBox';
-import { MIDDLEWARE_REACT_LOADABLE_MANIFEST } from 'next/dist/shared/lib/constants';
+} from "../utils/apiUtil";
+import { v4 as uuidv4 } from "uuid";
+import Box from "../components/customBox";
+import { MIDDLEWARE_REACT_LOADABLE_MANIFEST } from "next/dist/shared/lib/constants";
 
 const MAX_ACHIEVEMENTS = 10; // Define the maximum number of achievements allowed
 
+/**
+ * AchievementPortal component provides a user interface for managing achievements.
+ * It allows users to fetch, edit, add, delete, and save achievements using an API key.
+ * 
+ * @component
+ * 
+ * @example
+ * // Usage example:
+ * <AchievementPortal />
+ * 
+ * @returns {JSX.Element} The rendered AchievementPortal component.
+ * 
+ * @description
+ * The AchievementPortal component includes the following features:
+ * - Fetch achievements using an API key.
+ * - Display achievements in view mode.
+ * - Enter edit mode to modify achievements.
+ * - Add new achievements.
+ * - Delete existing or draft achievements.
+ * - Save changes to the backend.
+ * - Handle image uploads for achievements.
+ * - Prevent accidental navigation with unsaved changes.
+ * - Switch API key to fetch a different list of achievements.
+ * 
+ * @state {string} apiKey - The API key used for fetching achievements.
+ * @state {string} apiKeyInput - The input value for the API key.
+ * @state {string|null} listId - The ID of the achievement list.
+ * @state {string|null} appId - The ID of the application.
+ * @state {Array} achievements - The list of fetched achievements.
+ * @state {Array} draftAchievements - The list of achievements in edit mode.
+ * @state {Array} deletedAchievements - The list of achievements marked for deletion.
+ * @state {Object} originalAchievementsMap - A map of original achievements keyed by their ID.
+ * @state {Array} originalAchievements - The list of original achievements.
+ * @state {boolean} isEditing - Whether the component is in edit mode.
+ * @state {boolean} isFetchingAchievements - Whether achievements are being fetched.
+ * @state {boolean} isSaving - Whether changes are being saved.
+ * @state {boolean} hasUnsavedChanges - Whether there are unsaved changes.
+ * @state {boolean} showSwitchApiKey - Whether the switch API key input is visible.
+ * @state {Object|null} achievementToDelete - The achievement to be deleted.
+ * 
+ * @hook useToast - Chakra UI hook for displaying toast notifications.
+ * @hook useDisclosure - Chakra UI hook for managing modal state.
+ * @hook useEffect - React hook for handling side effects.
+ * 
+ * @function handleFetchAchievements - Fetches achievements using the provided API key.
+ * @function handleCopyToClipboard - Copies the achievement ID to the clipboard.
+ * @function toggleEditMode - Toggles the edit mode.
+ * @function handleDraftAchievementChange - Handles changes to draft achievements.
+ * @function handleAddDraftAchievement - Adds a new draft achievement.
+ * @function openDeleteModal - Opens the delete confirmation modal.
+ * @function confirmDeleteAchievement - Confirms the deletion of an achievement.
+ * @function handleDeleteAchievement - Handles the deletion of an achievement.
+ * @function onDragEndHandler - Handles the end of a drag-and-drop event.
+ * @function handleDragEnd - Handles the reordering of draft achievements.
+ * @function handleSave - Saves the changes to the backend.
+ * @function handleCancel - Cancels the edit mode and reverts changes.
+ * @function toggleSwitchApiKey - Toggles the visibility of the switch API key input.
+ * @function handleDraftImageChange - Handles changes to the draft achievement image.
+ */
 function AchievementPortal() {
   const toast = useToast();
 
   // =========================
   // State Variables
   // =========================
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState("");
   const [listId, setListId] = useState(null);
   const [appId, setAppId] = useState(null);
   const [achievements, setAchievements] = useState([]);
@@ -62,7 +138,7 @@ function AchievementPortal() {
   const [isSaving, setIsSaving] = useState(false);
   const [deletedAchievements, setDeletedAchievements] = useState([]);
 
-  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [apiKeyInput, setApiKeyInput] = useState("");
 
   // Modal State for Delete Confirmation
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -86,11 +162,11 @@ function AchievementPortal() {
     const handleBeforeUnload = (e) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = "";
       }
     };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
   // =========================
@@ -99,9 +175,9 @@ function AchievementPortal() {
   const handleFetchAchievements = async (inputApiKey) => {
     if (!inputApiKey) {
       toast({
-        title: 'API Key Missing',
-        description: 'Please enter your API Key.',
-        status: 'warning',
+        title: "API Key Missing",
+        description: "Please enter your API Key.",
+        status: "warning",
         duration: 5000,
         isClosable: true,
       });
@@ -127,7 +203,7 @@ function AchievementPortal() {
       const { listId: fetchedListId, appId: fetchedAppId } = keyResponse.data;
 
       if (!fetchedListId || !fetchedAppId) {
-        throw new Error('Invalid API Key: Associated list or app not found.');
+        throw new Error("Invalid API Key: Associated list or app not found.");
       }
 
       setListId(fetchedListId);
@@ -135,22 +211,22 @@ function AchievementPortal() {
       setApiKey(inputApiKey); // Set the stored API key
 
       // Store API Key in localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('apiKey', inputApiKey);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("apiKey", inputApiKey);
       }
 
       // 2. Fetch achievements using listId and API Key
       const achievementsResponse = await axios.get(
         `/api/lists/${fetchedListId}/achievements`,
         {
-          headers: { 'x-api-key': inputApiKey },
+          headers: { "x-api-key": inputApiKey },
         }
       );
 
       const fetchedAchievements = achievementsResponse.data;
 
       if (!Array.isArray(fetchedAchievements)) {
-        throw new Error('Invalid response format for achievements.');
+        throw new Error("Invalid response format for achievements.");
       }
 
       // Initialize uploadProgress and isNew for each achievement
@@ -171,25 +247,25 @@ function AchievementPortal() {
       setOriginalAchievementsMap(achievementsMap);
 
       toast({
-        title: 'Achievements Retrieved',
+        title: "Achievements Retrieved",
         description: `Fetched ${fetchedAchievements.length} achievement(s).`,
-        status: 'success',
+        status: "success",
         duration: 5000,
         isClosable: true,
       });
     } catch (error) {
-      console.error('Error fetching achievements:', error);
+      console.error("Error fetching achievements:", error);
       let errorMessage =
-        'An unexpected error occurred while fetching achievements.';
+        "An unexpected error occurred while fetching achievements.";
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
       } else if (error.message) {
         errorMessage = error.message;
       }
       toast({
-        title: 'Error Fetching Achievements',
+        title: "Error Fetching Achievements",
         description: errorMessage,
-        status: 'error',
+        status: "error",
         duration: 7000,
         isClosable: true,
       });
@@ -205,17 +281,17 @@ function AchievementPortal() {
     try {
       await copyToClipboard(text);
       toast({
-        title: 'Copied!',
-        description: 'Achievement ID copied to clipboard.',
-        status: 'success',
+        title: "Copied!",
+        description: "Achievement ID copied to clipboard.",
+        status: "success",
         duration: 3000,
         isClosable: true,
       });
     } catch (error) {
       toast({
-        title: 'Copy Failed',
-        description: 'Failed to copy ID.',
-        status: 'error',
+        title: "Copy Failed",
+        description: "Failed to copy ID.",
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
@@ -245,10 +321,10 @@ function AchievementPortal() {
       newDraft[index][field] = value;
 
       // If type changes, reset related fields
-      if (field === 'type') {
-        if (value === 'milestone') {
-          newDraft[index].progressGoal = ''; // Reset progressGoal
-        } else if (value === 'progress' && !newDraft[index].progressGoal) {
+      if (field === "type") {
+        if (value === "milestone") {
+          newDraft[index].progressGoal = ""; // Reset progressGoal
+        } else if (value === "progress" && !newDraft[index].progressGoal) {
           newDraft[index].progressGoal = 1; // Set default progressGoal
         }
       }
@@ -261,12 +337,12 @@ function AchievementPortal() {
   const handleAddDraftAchievement = () => {
     // Calculate the total number of achievements (existing + drafts)
     const totalAchievements = draftAchievements.length;
-    
+
     if (totalAchievements >= MAX_ACHIEVEMENTS) {
       toast({
-        title: 'Achievement Limit Reached',
+        title: "Achievement Limit Reached",
         description: `You can only have up to ${MAX_ACHIEVEMENTS} achievements.`,
-        status: 'warning',
+        status: "warning",
         duration: 5000,
         isClosable: true,
       });
@@ -281,12 +357,12 @@ function AchievementPortal() {
       ...draftAchievements,
       {
         _id: uuidv4(), // Assign a unique temporary ID
-        title: '',
-        description: '',
-        type: 'progress',
-        progressGoal: '',
+        title: "",
+        description: "",
+        type: "progress",
+        progressGoal: "",
         isHidden: false,
-        imageUrl: '',
+        imageUrl: "",
         order: newOrder, // Assign the next order value
         uploadProgress: 0, // Initialize uploadProgress
         isNew: true, // Mark as new achievement
@@ -316,11 +392,13 @@ function AchievementPortal() {
     console.log(`Delete button clicked for achievement ID: ${achievement}`); // Debug log
     if (achievement.isNew) {
       // If the achievement is new (draft), simply remove it from drafts
-      setDraftAchievements((prev) => prev.filter((ach) => ach._id !== achievement._id));
+      setDraftAchievements((prev) =>
+        prev.filter((ach) => ach._id !== achievement._id)
+      );
       toast({
-        title: 'Draft Achievement Removed',
-        description: 'The new achievement has been removed.',
-        status: 'info',
+        title: "Draft Achievement Removed",
+        description: "The new achievement has been removed.",
+        status: "info",
         duration: 3000,
         isClosable: true,
       });
@@ -328,11 +406,13 @@ function AchievementPortal() {
       // If the achievement exists in the backend, mark it for deletion
       console.log(`Marking achievement for deletion: ${achievement._id}`);
       setDeletedAchievements((prev) => [...prev, achievement._id]);
-      setDraftAchievements((prev) => prev.filter((ach) => ach._id !== achievement._id));
+      setDraftAchievements((prev) =>
+        prev.filter((ach) => ach._id !== achievement._id)
+      );
       toast({
-        title: 'Achievement Marked for Deletion',
-        description: 'This achievement will be deleted upon saving changes.',
-        status: 'info',
+        title: "Achievement Marked for Deletion",
+        description: "This achievement will be deleted upon saving changes.",
+        status: "info",
         duration: 3000,
         isClosable: true,
       });
@@ -362,10 +442,14 @@ function AchievementPortal() {
 
     if (active.id !== over?.id) {
       const oldIndex = draftAchievements.findIndex(
-        (ach) => ach._id === active.id || `new-${draftAchievements.indexOf(ach)}` === active.id
+        (ach) =>
+          ach._id === active.id ||
+          `new-${draftAchievements.indexOf(ach)}` === active.id
       );
       const newIndex = draftAchievements.findIndex(
-        (ach) => ach._id === over.id || `new-${draftAchievements.indexOf(ach)}` === over.id
+        (ach) =>
+          ach._id === over.id ||
+          `new-${draftAchievements.indexOf(ach)}` === over.id
       );
 
       if (oldIndex === -1 || newIndex === -1) return;
@@ -390,9 +474,10 @@ function AchievementPortal() {
     // **NEW VALIDATION: Prevent saving if there are zero achievements**
     if (draftAchievements.length === 0) {
       toast({
-        title: 'No Achievements to Save',
-        description: 'Please add at least one achievement before saving changes.',
-        status: 'warning',
+        title: "No Achievements to Save",
+        description:
+          "Please add at least one achievement before saving changes.",
+        status: "warning",
         duration: 5000,
         isClosable: true,
       });
@@ -401,9 +486,10 @@ function AchievementPortal() {
 
     if (!apiKey || !listId) {
       toast({
-        title: 'API Key Missing',
-        description: 'Please enter your API Key and ensure achievements are loaded.',
-        status: 'warning',
+        title: "API Key Missing",
+        description:
+          "Please enter your API Key and ensure achievements are loaded.",
+        status: "warning",
         duration: 5000,
         isClosable: true,
       });
@@ -414,7 +500,9 @@ function AchievementPortal() {
 
     try {
       // **Separate Achievements into Those to Update and to Create**
-      const achievementsToUpdate = draftAchievements.filter((ach) => !ach.isNew);
+      const achievementsToUpdate = draftAchievements.filter(
+        (ach) => !ach.isNew
+      );
       const achievementsToCreate = draftAchievements.filter((ach) => ach.isNew);
 
       // **Handle Image Uploads for Existing Achievements Only**
@@ -433,7 +521,9 @@ function AchievementPortal() {
               );
               const updatedDraft = [...draftAchievements];
               // Find the index of the achievement to update its uploadProgress
-              const draftIndex = updatedDraft.findIndex((a) => a._id === ach._id);
+              const draftIndex = updatedDraft.findIndex(
+                (a) => a._id === ach._id
+              );
               if (draftIndex !== -1) {
                 updatedDraft[draftIndex].uploadProgress = progress;
                 setDraftAchievements(updatedDraft);
@@ -449,7 +539,7 @@ function AchievementPortal() {
 
       // **Handle Deletions (Only Existing Achievements)**
       for (const ach of deletedAchievements) {
-        await deleteAchievement(listId,ach, apiKey);
+        await deleteAchievement(listId, ach, apiKey);
       }
 
       // **Prepare Promises for Updating Existing Achievements**
@@ -461,7 +551,7 @@ function AchievementPortal() {
             title: ach.title,
             description: ach.description,
             type: ach.type,
-            progressGoal: ach.type === 'progress' ? ach.progressGoal : 1,
+            progressGoal: ach.type === "progress" ? ach.progressGoal : 1,
             isHidden: ach.isHidden,
             imageUrl: ach.imageUrl,
             order: ach.order,
@@ -477,7 +567,7 @@ function AchievementPortal() {
           title: ach.title,
           description: ach.description,
           type: ach.type,
-          progressGoal: ach.type === 'progress' ? ach.progressGoal : 1,
+          progressGoal: ach.type === "progress" ? ach.progressGoal : 1,
           isHidden: ach.isHidden,
           order: ach.order,
         };
@@ -494,7 +584,7 @@ function AchievementPortal() {
       // **Handle Update Results**
       const failedUpdates = updateResults
         .map((result, idx) => {
-          if (result.status === 'rejected') {
+          if (result.status === "rejected") {
             return {
               achievement: achievementsToUpdate[idx],
               error: result.reason.response
@@ -509,7 +599,7 @@ function AchievementPortal() {
       // **Handle Create Results**
       const failedCreates = createResults
         .map((result, idx) => {
-          if (result.status === 'rejected') {
+          if (result.status === "rejected") {
             return {
               achievement: achievementsToCreate[idx],
               error: result.reason.response
@@ -523,24 +613,28 @@ function AchievementPortal() {
 
       // **Notify User About Failed Updates**
       if (failedUpdates.length > 0 || failedCreates.length > 0) {
-        let errorMsg = '';
+        let errorMsg = "";
         if (failedUpdates.length > 0) {
           errorMsg += `Failed to update ${failedUpdates.length} achievement(s).\n`;
           failedUpdates.forEach((fail, idx) => {
-            errorMsg += `${idx + 1}. ID: ${fail.achievement._id} - ${fail.error}\n`;
+            errorMsg += `${idx + 1}. ID: ${fail.achievement._id} - ${
+              fail.error
+            }\n`;
           });
         }
         if (failedCreates.length > 0) {
           errorMsg += `Failed to create ${failedCreates.length} achievement(s).\n`;
           failedCreates.forEach((fail, idx) => {
-            errorMsg += `${idx + 1}. Title: ${fail.achievement.title || 'Untitled'} - ${fail.error}\n`;
+            errorMsg += `${idx + 1}. Title: ${
+              fail.achievement.title || "Untitled"
+            } - ${fail.error}\n`;
           });
         }
 
         toast({
-          title: 'Partial Update Failed',
+          title: "Partial Update Failed",
           description: errorMsg,
-          status: 'error',
+          status: "error",
           duration: 10000,
           isClosable: true,
         });
@@ -550,55 +644,59 @@ function AchievementPortal() {
         // **Upload Images for Newly Created Achievements**
         const successfullyCreatedAchievements = createResults
           .map((result, idx) => {
-            if (result.status === 'fulfilled') {
+            if (result.status === "fulfilled") {
               return result.value.data; // Assuming the response contains the created achievement data
             }
             return null;
           })
           .filter((ach) => ach !== null);
 
-        const imageUploadPromises = successfullyCreatedAchievements.map((ach, idx) => {
-          const draftAch = achievementsToCreate[idx];
-          if (draftAch.newImageFile) {
-            return uploadAchievementImage(
-              listId,
-              ach._id,
-              draftAch.newImageFile,
-              apiKey,
-              (progressEvent) => {
-                const progress = Math.round(
-                  (progressEvent.loaded * 100) / progressEvent.total
-                );
-                setDraftAchievements((prevDraft) => {
-                  const newDraft = [...prevDraft];
-                  // Find the index of the achievement to update its uploadProgress
-                  const draftIndex = newDraft.findIndex((a) => a._id === ach._id);
-                  if (draftIndex !== -1) {
-                    newDraft[draftIndex].uploadProgress = progress;
-                    return newDraft;
-                  }
-                  return prevDraft;
+        const imageUploadPromises = successfullyCreatedAchievements.map(
+          (ach, idx) => {
+            const draftAch = achievementsToCreate[idx];
+            if (draftAch.newImageFile) {
+              return uploadAchievementImage(
+                listId,
+                ach._id,
+                draftAch.newImageFile,
+                apiKey,
+                (progressEvent) => {
+                  const progress = Math.round(
+                    (progressEvent.loaded * 100) / progressEvent.total
+                  );
+                  setDraftAchievements((prevDraft) => {
+                    const newDraft = [...prevDraft];
+                    // Find the index of the achievement to update its uploadProgress
+                    const draftIndex = newDraft.findIndex(
+                      (a) => a._id === ach._id
+                    );
+                    if (draftIndex !== -1) {
+                      newDraft[draftIndex].uploadProgress = progress;
+                      return newDraft;
+                    }
+                    return prevDraft;
+                  });
+                }
+              )
+                .then((imageUrl) => {
+                  // Update the achievement's imageUrl in the backend or state as needed
+                  // This might require an additional API call to update the achievement with the imageUrl
+                  return updateAchievement(
+                    listId,
+                    ach._id,
+                    { imageUrl },
+                    apiKey
+                  );
+                })
+                .catch((uploadError) => {
+                  throw new Error(
+                    `Image upload failed for Achievement ID: ${ach._id}.`
+                  );
                 });
-              }
-            )
-              .then((imageUrl) => {
-                // Update the achievement's imageUrl in the backend or state as needed
-                // This might require an additional API call to update the achievement with the imageUrl
-                return updateAchievement(
-                  listId,
-                  ach._id,
-                  { imageUrl },
-                  apiKey
-                );
-              })
-              .catch((uploadError) => {
-                throw new Error(
-                  `Image upload failed for Achievement ID: ${ach._id}.`
-                );
-              });
+            }
+            return Promise.resolve();
           }
-          return Promise.resolve();
-        });
+        );
 
         // **Execute Image Uploads**
         await Promise.all(imageUploadPromises);
@@ -607,15 +705,17 @@ function AchievementPortal() {
         const refreshedAchievementsResponse = await axios.get(
           `/api/lists/${listId}/achievements`,
           {
-            headers: { 'x-api-key': apiKey },
+            headers: { "x-api-key": apiKey },
           }
         );
 
-        const refreshedAchievements = refreshedAchievementsResponse.data.map((ach) => ({
-          ...ach,
-          uploadProgress: 0,
-          isNew: false,
-        }));
+        const refreshedAchievements = refreshedAchievementsResponse.data.map(
+          (ach) => ({
+            ...ach,
+            uploadProgress: 0,
+            isNew: false,
+          })
+        );
 
         setAchievements(refreshedAchievements);
         setOriginalAchievements(refreshedAchievements);
@@ -634,25 +734,26 @@ function AchievementPortal() {
         setHasUnsavedChanges(false);
 
         toast({
-          title: 'Success',
-          description: 'All achievements updated and created successfully.',
-          status: 'success',
+          title: "Success",
+          description: "All achievements updated and created successfully.",
+          status: "success",
           duration: 5000,
           isClosable: true,
         });
       }
     } catch (error) {
-      console.error('Error during save:', error);
-      let errorMessage = 'An unexpected error occurred while saving achievements.';
+      console.error("Error during save:", error);
+      let errorMessage =
+        "An unexpected error occurred while saving achievements.";
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
       } else if (error.message) {
         errorMessage = error.message;
       }
       toast({
-        title: 'Error Saving Achievements',
+        title: "Error Saving Achievements",
         description: errorMessage,
-        status: 'error',
+        status: "error",
         duration: 7000,
         isClosable: true,
       });
@@ -667,9 +768,9 @@ function AchievementPortal() {
     setIsEditing(false);
     setHasUnsavedChanges(false);
     toast({
-      title: 'Cancelled',
-      description: 'All changes have been reverted.',
-      status: 'info',
+      title: "Cancelled",
+      description: "All changes have been reverted.",
+      status: "info",
       duration: 3000,
       isClosable: true,
     });
@@ -698,14 +799,14 @@ function AchievementPortal() {
   // =========================
   return (
     <Box
-      bg={useColorModeValue('gray.50', 'gray.800')}
+      bg={useColorModeValue("gray.50", "gray.800")}
       minH="100vh"
       p={{ base: 4, md: 8 }}
     >
       <Box
-        maxW={{ base: '100%', md: '6xl' }}
+        maxW={{ base: "100%", md: "6xl" }}
         mx="auto"
-        bg={useColorModeValue('white', 'gray.700')}
+        bg={useColorModeValue("white", "gray.700")}
         p={{ base: 4, md: 8 }}
         shadow="md"
         borderRadius="md"
@@ -713,8 +814,8 @@ function AchievementPortal() {
         <Heading
           color="blue.500"
           mb={{ base: 4, md: 6 }}
-          fontSize={{ base: '2xl', md: '3xl' }}
-          textAlign={{ base: 'center', md: 'left' }}
+          fontSize={{ base: "2xl", md: "3xl" }}
+          textAlign={{ base: "center", md: "left" }}
         >
           Achievement Portal
         </Heading>
@@ -724,13 +825,13 @@ function AchievementPortal() {
           <Box w="100%" mb={{ base: 6, md: 8 }}>
             <VStack
               align="start"
-              bg={useColorModeValue('white', 'gray.700')}
+              bg={useColorModeValue("white", "gray.700")}
               spacing={4}
               p={{ base: 3, md: 6 }}
               borderRadius="md"
               shadow="sm"
             >
-              <Text fontSize={{ base: 'md', md: 'lg' }}>
+              <Text fontSize={{ base: "md", md: "lg" }}>
                 Please enter your API Key to access your Achievement List.
               </Text>
               <HStack spacing={4} w="100%">
@@ -748,7 +849,10 @@ function AchievementPortal() {
                   isLoading={isFetchingAchievements}
                   loadingText="Fetching"
                   isDisabled={
-                    !apiKeyInput || isFetchingAchievements || isSaving || isEditing
+                    !apiKeyInput ||
+                    isFetchingAchievements ||
+                    isSaving ||
+                    isEditing
                   }
                   size="md"
                 >
@@ -764,13 +868,13 @@ function AchievementPortal() {
           <>
             <HStack
               mb={{ base: 4, md: 6 }}
-              flexDirection={{ base: 'column', md: 'row' }}
-              alignItems={{ base: 'stretch', md: 'center' }}
+              flexDirection={{ base: "column", md: "row" }}
+              alignItems={{ base: "stretch", md: "center" }}
             >
               <Heading
                 size="md"
                 mb={{ base: 2, md: 0 }}
-                fontSize={{ base: 'xl', md: '2xl' }}
+                fontSize={{ base: "xl", md: "2xl" }}
               >
                 Achievements
               </Heading>
@@ -778,15 +882,17 @@ function AchievementPortal() {
               <HStack spacing={2}>
                 <Button
                   leftIcon={isEditing ? <CloseIcon /> : <EditIcon />}
-                  colorScheme={isEditing ? 'red' : 'blue'}
+                  colorScheme={isEditing ? "red" : "blue"}
                   onClick={isEditing ? handleCancel : toggleEditMode}
                   isDisabled={
                     draftAchievements.length === 0 && achievements.length === 0
                   }
-                  aria-label={isEditing ? 'Cancel Editing' : 'Edit Achievements'}
+                  aria-label={
+                    isEditing ? "Cancel Editing" : "Edit Achievements"
+                  }
                   size="md"
                 >
-                  {isEditing ? 'Cancel' : 'Edit Achievements'}
+                  {isEditing ? "Cancel" : "Edit Achievements"}
                 </Button>
                 <Button
                   leftIcon={<SearchIcon />}
@@ -810,13 +916,10 @@ function AchievementPortal() {
                 border="1px solid"
                 borderColor="gray.200"
                 borderRadius="md"
-                bg={useColorModeValue('white', 'gray.700')}
+                bg={useColorModeValue("white", "gray.700")}
               >
-                <VStack
-                  align="start"
-                  spacing={3}
-                >
-                  <Text fontSize={{ base: 'md', md: 'lg' }}>
+                <VStack align="start" spacing={3}>
+                  <Text fontSize={{ base: "md", md: "lg" }}>
                     Enter a new API Key to switch achievement lists:
                   </Text>
                   <HStack spacing={4} w="100%">
@@ -837,7 +940,10 @@ function AchievementPortal() {
                       isLoading={isFetchingAchievements}
                       loadingText="Switching"
                       isDisabled={
-                        !apiKeyInput || isFetchingAchievements || isSaving || isEditing
+                        !apiKeyInput ||
+                        isFetchingAchievements ||
+                        isSaving ||
+                        isEditing
                       }
                       size="md"
                     >
@@ -853,9 +959,16 @@ function AchievementPortal() {
               // 1. View Mode with Loading and Conditional Rendering
               isFetchingAchievements ? (
                 // Display loading indicator while fetching
-                <VStack spacing={4} align="center" w="100%" py={{ base: 10, md: 16 }}>
+                <VStack
+                  spacing={4}
+                  align="center"
+                  w="100%"
+                  py={{ base: 10, md: 16 }}
+                >
                   <Spinner size="xl" />
-                  <Text fontSize={{ base: 'md', md: 'lg' }}>Loading achievements...</Text>
+                  <Text fontSize={{ base: "md", md: "lg" }}>
+                    Loading achievements...
+                  </Text>
                 </VStack>
               ) : achievements.length === 0 ? (
                 // 3. No Achievements Found
@@ -867,7 +980,10 @@ function AchievementPortal() {
                 >
                   <HStack>
                     <WarningIcon color="yellow.500" />
-                    <Text color={useColorModeValue('gray.800', 'gray.700')} fontSize={{ base: 'md', md: 'lg' }}>
+                    <Text
+                      color={useColorModeValue("gray.800", "gray.700")}
+                      fontSize={{ base: "md", md: "lg" }}
+                    >
                       No achievements found. Please add some.
                     </Text>
                   </HStack>
@@ -877,7 +993,7 @@ function AchievementPortal() {
                 <VStack
                   align="start"
                   spacing={4}
-                  bg={useColorModeValue('white', 'gray.700')}
+                  bg={useColorModeValue("white", "gray.700")}
                   p={{ base: 3, md: 6 }}
                   borderRadius="md"
                   shadow="sm"
@@ -890,36 +1006,44 @@ function AchievementPortal() {
                       border="1px solid"
                       borderColor="gray.200"
                       borderRadius="md"
-                      _hover={{ bg: useColorModeValue('gray.100', 'gray.600') }}
+                      _hover={{ bg: useColorModeValue("gray.100", "gray.600") }}
                       transition="background-color 0.2s"
                     >
-                      <HStack justifyContent="space-between" alignItems="flex-start" flexDirection={{ base: 'column', md: 'row' }}>
+                      <HStack
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        flexDirection={{ base: "column", md: "row" }}
+                      >
                         <Box>
                           <Text
                             fontWeight="bold"
-                            fontSize={{ base: 'lg', md: 'xl' }}
+                            fontSize={{ base: "lg", md: "xl" }}
                           >
-                            {ach.title || 'Untitled Achievement'}
+                            {ach.title || "Untitled Achievement"}
                           </Text>
-                          <Text mt={2} fontSize={{ base: 'sm', md: 'md' }}>
-                            <strong>Description:</strong> {ach.description || 'No description.'}
+                          <Text mt={2} fontSize={{ base: "sm", md: "md" }}>
+                            <strong>Description:</strong>{" "}
+                            {ach.description || "No description."}
                           </Text>
-                          <Text fontSize={{ base: 'sm', md: 'md' }}>
-                            <strong>Type:</strong> {ach.type.charAt(0).toUpperCase() + ach.type.slice(1)}
+                          <Text fontSize={{ base: "sm", md: "md" }}>
+                            <strong>Type:</strong>{" "}
+                            {ach.type.charAt(0).toUpperCase() +
+                              ach.type.slice(1)}
                           </Text>
-                          {ach.type === 'progress' && (
-                            <Text fontSize={{ base: 'sm', md: 'md' }}>
+                          {ach.type === "progress" && (
+                            <Text fontSize={{ base: "sm", md: "md" }}>
                               <strong>Progress Goal:</strong> {ach.progressGoal}
                             </Text>
                           )}
-                          <Text fontSize={{ base: 'sm', md: 'md' }}>
-                            <strong>Hidden:</strong> {ach.isHidden ? 'Yes' : 'No'}
+                          <Text fontSize={{ base: "sm", md: "md" }}>
+                            <strong>Hidden:</strong>{" "}
+                            {ach.isHidden ? "Yes" : "No"}
                           </Text>
                           {ach.imageUrl && (
                             <Image
                               src={ach.imageUrl}
                               alt={ach.title}
-                              boxSize={{ base: '80px', md: '100px' }}
+                              boxSize={{ base: "80px", md: "100px" }}
                               objectFit="cover"
                               mt={2}
                               borderRadius="md"
@@ -927,7 +1051,10 @@ function AchievementPortal() {
                           )}
                         </Box>
                         {ach._id && (
-                          <Tooltip label="Copy Achievement ID" aria-label="Copy ID Tooltip">
+                          <Tooltip
+                            label="Copy Achievement ID"
+                            aria-label="Copy ID Tooltip"
+                          >
                             <IconButton
                               icon={<CopyIcon />}
                               onClick={() => handleCopyToClipboard(ach._id)}
@@ -953,7 +1080,9 @@ function AchievementPortal() {
                   onDragEnd={onDragEndHandler}
                 >
                   <SortableContext
-                    items={draftAchievements.map((ach) => ach._id || `new-${ach.order}`)}
+                    items={draftAchievements.map(
+                      (ach) => ach._id || `new-${ach.order}`
+                    )}
                     strategy={verticalListSortingStrategy}
                   >
                     <VStack spacing={4} align="stretch" w="100%">
@@ -989,13 +1118,18 @@ function AchievementPortal() {
                     <HStack>
                       <WarningIcon color="red.500" />
                       <Text color="red.700">
-                        You must have at least one achievement before saving changes.
+                        You must have at least one achievement before saving
+                        changes.
                       </Text>
                     </HStack>
                   </Box>
                 )}
                 {/* Save and Cancel Buttons */}
-                <HStack spacing={4} mt={4} flexDirection={{ base: 'column', md: 'row' }}>
+                <HStack
+                  spacing={4}
+                  mt={4}
+                  flexDirection={{ base: "column", md: "row" }}
+                >
                   <Button
                     colorScheme="blue"
                     onClick={handleSave}
@@ -1004,7 +1138,7 @@ function AchievementPortal() {
                     loadingText="Saving"
                     isDisabled={isSaving || draftAchievements.length === 0}
                     aria-label="Save Changes"
-                    w={{ base: '100%', md: 'auto' }}
+                    w={{ base: "100%", md: "auto" }}
                   >
                     Save Changes
                   </Button>
@@ -1013,7 +1147,7 @@ function AchievementPortal() {
                     onClick={handleCancel}
                     leftIcon={<CloseIcon />}
                     aria-label="Cancel Editing"
-                    w={{ base: '100%', md: 'auto' }}
+                    w={{ base: "100%", md: "auto" }}
                   >
                     Cancel
                   </Button>
@@ -1034,7 +1168,7 @@ function AchievementPortal() {
                 <DeleteIcon color="red.500" />
                 <Text>
                   Are you sure you want to delete the achievement "
-                  {achievementToDelete?.title || 'Untitled'}"?
+                  {achievementToDelete?.title || "Untitled"}"?
                 </Text>
               </HStack>
             </ModalBody>
